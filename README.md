@@ -1,5 +1,5 @@
 # MTR_processing
-This is a pipeline for the processing of Magnetization Transfer images. 
+This is a pipeline for the processing of Rodent Magnetization Transfer images. 
 
 It is still under development!
 
