@@ -2,7 +2,7 @@
 #Script for registering DSUQRE atlas to MTR 200um scans for Mila
 #Usage
 #module load minc-toolkit ANTs/20190211
-#./mtr_register.sh DSUQRE.mnc MTR_image.mnc /path/to/save/outputs
+#./mtr_register_strong.sh DSUQRE.mnc MTR_image.mnc /path/to/save/outputs
 #antsApplyTransforms -d 3 -i DSUQRE_labels.mnc -t /path/to/save/outputs/DSUQRE_MTR_image1_NL.xfm \
 # -t /path/to/save/outputs/DSUQRE_MTR_image0_GenericAffine.xfm -n GenericLabel -o /path/to/save/labels_on_MTR_image.mnc --verbose \
 # -r MTR_image.mnc

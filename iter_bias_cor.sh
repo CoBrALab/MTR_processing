@@ -17,7 +17,7 @@ N4BiasFieldCorrection -d 3 -i $tmpdir/resampled.mnc -b 20 -s 1 -c [100x100x100x1
 #iterative registration and bias correction
 ResampleImage 3 $tmpdir/corrected.mnc $tmpdir/resampled100.mnc 0.2x0.2x0.2 0 4
 
-bash Rigid_registration.sh $tmpdir/resampled100.mnc $anat_file $mask $filename_template
+bash /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/Rigid_registration.sh $tmpdir/resampled100.mnc $anat_file $mask $filename_template
 
 antsApplyTransforms -d 3 -i $mask -t ${filename_template}_output_InverseComposite.h5 -r $tmpdir/resampled.mnc -o $tmpdir/resampled_mask.mnc --verbose -n GenericLabel
 
