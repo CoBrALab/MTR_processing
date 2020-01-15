@@ -58,7 +58,7 @@ The ‘corrected_mtr_maps’ subfolder contains the mtr maps from the ‘mtr_map
 
 # **Preview of the outputs**
 
-Raw MT Acquisition &nbsp; &nbsp; &nbsp;  Preprocessed &nbsp; &nbsp; &nbsp; Denoised  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;   Mask  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  MTR map &nbsp; &nbsp; Corrected MTR &nbsp; &nbsp; B1 map 
+Raw MT Acquisition &nbsp; &nbsp; &nbsp;  Preprocessed &nbsp; &nbsp; &nbsp; Denoised  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;   Mask  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  MTR map &nbsp; &nbsp; &nbsp; &nbsp; Corrected MTR &nbsp; &nbsp; &nbsp; B1 map 
 
 ![documentation_outputs](https://user-images.githubusercontent.com/47565996/72276873-e2b99580-35fe-11ea-9db1-813f34c64119.png)
 
