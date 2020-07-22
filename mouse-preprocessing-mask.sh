@@ -2,12 +2,11 @@
 #Script to do optimal preprocessing on in-vivo/ex-vivo structural scans
 #Taken using the CIC Bruker 7T
 #usage:
-#mouse-preprocessing-v3.sh input.mnc output.mnc
+#mouse-preprocessing-mask.sh input.mnc output.mnc
 
 #Operations
 # registers to DSURQE atlas
 # gets approximate brain mask from atlas
-# Bias field correction with N4
 
 set -euo pipefail
 
