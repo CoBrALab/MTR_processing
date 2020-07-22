@@ -31,8 +31,8 @@ if test -f $output/preprocessed/*${basename}*pd*; then rm $tmp_subject_dir/*pd*;
 if test -f $output/preprocessed/*${basename}*b1*60*; then rm $tmp_subject_dir/*b1*; fi
 
 for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
-for file in $tmp_subject_dir/*; do if [[ "$file" != *b1* ]]; then /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-denoise-only.sh $file $output/denoised/$(basename -s .mnc $file)_denoised.mnc; fi; done
-/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-mask.sh $output/preprocessed/$(basename -s .mnc $2)_processed.mnc $output/masks/${basename}_mask.mnc
+for file in $output/preprocessed/*; do if [[ "$file" != *b1* ]]; then /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-denoise-only.sh $file $output/denoised/$(basename -s .mnc $file)_denoised.mnc; fi; done
+/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-mask.sh $output/denoised/$(basename -s .mnc $2)_denoised.mnc $output/masks/${basename}_mask.mnc
 for file in $output/preprocessed/*${basename}*b1*; do /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/iter_bias_cor.sh $file $output/denoised/$(basename -s .mnc $2)_denoised.mnc $output/masks/${basename}_mask.mnc $output/denoised/$(basename -s .mnc $file)_denoised.mnc; done
 
 #create MTR maps
@@ -56,6 +56,9 @@ if [ "$coil_type" == "nrm" ]; then minccalc -expression 'A[0]/(1.38396756*A[1]-0
 if [ "$coil_type" == "cry" ]; then minccalc -expression 'A[0]/(1.45501874*A[1]-0.45320295)' $output/mtr_maps/$(basename -s .mnc $2)_mtr_map_minccalc.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_minccalc_corrected.mnc; fi
 if [ "$coil_type" == "nrm" ]; then minccalc -expression 'A[0]/(1.38396756*A[1]-0.31847942)' $output/mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected.mnc; fi
 if [ "$coil_type" == "cry" ]; then minccalc -expression 'A[0]/(1.45501874*A[1]-0.45320295)' $output/mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected.mnc; fi
+
+#after the correction, there may be a few voxels greater than 1 that correspond to noise but made it inside the mask. Set these to zero. (set values between [1,10] to 0)
+ImageMath 3 $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected_thresholded.mnc ReplaceVoxelValue $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected.mnc 1 10 0
 
 #make mtr histograms using no csf mask-requires registration of DSURQE no csf labels to the mt map
 mkdir -m a=rwx $output/mtr_histograms

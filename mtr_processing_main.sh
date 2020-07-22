@@ -31,8 +31,8 @@ if test -f $output/preprocessed/*${basename}*pd*; then rm $tmp_subject_dir/*pd*;
 if test -f $output/preprocessed/*${basename}*b1*60*; then rm $tmp_subject_dir/*b1*; fi
 
 for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
-for file in $tmp_subject_dir/*; do if [[ "$file" != *b1* ]]; then /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-denoise-only.sh $file $output/denoised/$(basename -s .mnc $file)_denoised.mnc; fi; done
-/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-mask.sh $output/preprocessed/$(basename -s .mnc $2)_processed.mnc $output/masks/${basename}_mask.mnc
+for file in $output/preprocessed/*; do if [[ "$file" != *b1* ]]; then /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-denoise-only.sh $file $output/denoised/$(basename -s .mnc $file)_denoised.mnc; fi; done
+/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-mask.sh $output/denoised/$(basename -s .mnc $2)_denoised.mnc $output/masks/${basename}_mask.mnc
 for file in $output/preprocessed/*${basename}*b1*; do /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/iter_bias_cor.sh $file $output/denoised/$(basename -s .mnc $2)_denoised.mnc $output/masks/${basename}_mask.mnc $output/denoised/$(basename -s .mnc $file)_denoised.mnc; done
 
 #create MTR maps

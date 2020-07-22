@@ -1,8 +1,8 @@
 #!/bin/bash
-#Script to do optimal preprocessing on in-vivo/ex-vivo structural scans
+#Script to do denoising on in-vivo/ex-vivo structural scans, assumes preprocessed file with correct axes as input
 #Taken using the CIC Bruker 7T
 #usage:
-#mouse-preprocessing-v3.sh input.mnc output.mnc
+#mouse-preprocessing-denoise-only.sh input.mnc output.mnc
 
 #Operations
 # registers to DSURQE atlas
@@ -15,26 +15,15 @@ REGTARGET=${QUARANTINE_PATH}/resources/Dorr_2008_Steadman_2013_Ullmann_2013_Rich
 REGMASK=${QUARANTINE_PATH}/resources/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/100um/DSURQE_mask.mnc
 
 tmpdir=$(mktemp -d)
-#insert the centering and axis flipping code from mouse-preprocessing-v2.sh
+
 cp $1 $tmpdir/input.mnc
 
 input=$tmpdir/input.mnc
 output=$2
 
-minc_modify_header $input -sinsert :history=‘’
-
-volmash -swap zy $input $tmpdir/mash.mnc
-volflip $tmpdir/mash.mnc $tmpdir/flip.mnc
-
-clean_and_center_minc.pl $tmpdir/flip.mnc $tmpdir/centered.mnc
-
-minc_anlm $tmpdir/centered.mnc $tmpdir/denoise0.mnc #deals with non-stationary and non-Gaussian noise
-
-##minccalc -byte -unsigned -expression 'A[0]?1:1' $tmpdir/denoise0.mnc $tmpdir/fullmask.mnc
+minc_anlm $input $tmpdir/denoise0.mnc #deals with non-stationary and non-Gaussian noise
 
 #after this line is the original mouse-preprocessing-v3 code
-##input=$1
-##output=$2
 
 mincnorm -cutoff 0 -int -out_ceil 65535 -short $tmpdir/denoise0.mnc ${tmpdir}/renorm.mnc #rescale a minc image within range
 
@@ -66,8 +55,5 @@ antsApplyTransforms -d 3 -i ${REGMASK} -o ${tmpdir}/mask.mnc -t [${tmpdir}/trans
 
 N4BiasFieldCorrection -d 3 -s 2 -i ${tmpdir}/renorm.mnc -b [20] -c [200x200x200x200,0.0] -w ${tmpdir}/mask.mnc -r 1 -x ${tmpdir}/fullmask.mnc -o ${tmpdir}/N4.mnc --verbose
 minc_anlm --mt $(nproc) ${tmpdir}/N4.mnc ${output}
-
-
-#cp ${tmpdir}/mask.mnc $(dirname ${output})/$(basename ${output} .mnc)_mask.mnc
 
 rm -rf ${tmpdir}
