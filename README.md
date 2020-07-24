@@ -33,6 +33,9 @@ _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_m
 * Creates a B1 field map using the two EPI acquisitions (map of the pulse strength)
 * Corrects the MTR map for the inhomogeneities in signal strength using the B1 field map to produce a final MTR map
 
+* _mt stands for MT-pulse acquisition, pd stands for proton-density acquisition, b1_60 is 60 degree EPI, and b1_120 stands for the 120 degree EPI acquisition.
+![MTR_pipeline_workflow](https://user-images.githubusercontent.com/47565996/88414447-3decf180-cdb3-11ea-90aa-c6bd84fa32a6.png)
+
 ## To run the script from a CIC computer:
 
 _mtr_processing_main.sh output_folder coil_subjectid_mt_timepoint.mnc coil_subjectid_pd_timepoint.mnc coil_subjectid_b1_60_timepoint.mnc coil_subjectid_b1_120_timepoint.mnc_
@@ -40,7 +43,6 @@ _mtr_processing_main.sh output_folder coil_subjectid_mt_timepoint.mnc coil_subje
 * the output_folder name should not have a ‘/’ at the end. 
 * the script assumes that all 4 acquisitions were taken consecutively and with no changes in mouse positioning
 * for the output files to have proper names, the input mincs must follow the naming convention coil_subjectid where coil is replaced either by ‘cry’ or ‘nrm’ to indicate either cryocoil or room-temperature coil, and subjectid is a 3-digit mouse ID. Finally, additional numbers at the end can be added to indicate timepoint. For example: cry_001_mt_1.mnc
-* mt stands for MT-pulse acquisition, pd stands for proton-density acquisition, b1_60 is 60 degree EPI, and b1_120 stands for the 120 degree EPI acquisition.
 
 # **Output folders**
 ![tree_output_updated](https://user-images.githubusercontent.com/47565996/72276795-c0c01300-35fe-11ea-85dd-ea3493ae2060.png)
