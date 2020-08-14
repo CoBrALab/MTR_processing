@@ -45,9 +45,6 @@ antsRegistration --dimensionality 3 --float 0 --collapse-output-transforms 1 --m
     --convergence [2000x2000x50,1e-6,10,1] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0 --masks [${REGMASK},NULL]
 
 antsApplyTransforms -d 3 -i ${REGMASK} -o ${tmpdir}/mask.mnc -t [${tmpdir}/trans0_GenericAffine.xfm,1] -r ${tmpdir}/renorm.mnc -n GenericLabel --verbose
-
-#N4BiasFieldCorrection -d 3 -s 2 -i ${tmpdir}/renorm.mnc -b [20] -c [200x200x200x200,0.0] -w ${tmpdir}/mask.mnc -r 1 -x ${tmpdir}/fullmask.mnc -o ${tmpdir}/N4.mnc --verbose
-#minc_anlm --mt $(nproc) ${tmpdir}/N4.mnc ${output}
 echo $output
 cp ${tmpdir}/mask.mnc $output
 
