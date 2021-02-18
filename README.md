@@ -3,27 +3,24 @@
 Magnetization Transfer (MT) is an MRI technique that allows for an estimation of myelin content. 
 The Magnetization Transfer Ratio (MTR) in particular is a semi-quantitative measure of myelin concentration, meaning that it indicates the relative myelin content but doesn’t have a direct biological interpretation. 
 
-Although there exist other MRI techniques for imaging myelin, MT is the most specific to actual myelin content and the least likely to be affected by other factors. 
-
-See the following MT manual for a more detailed explanation of the principles behind MT and a comparison with other myelin imaging techniques: https://docs.google.com/document/d/16bT-A00APWKfXdhxgsvaOp3tUZg0c5pye5-0F6lR1BE/edit?usp=sharing (in progress) . 
+Although there exist other MRI techniques for imaging myelin, MTR has previously shown a reasonable tradeoff between specificity to myelin and a straightforward implementation, requiring only a simple calculation of the ratio between two images, one with a MT saturation pulse and one without. 
 
 # **Performing MTI on mice at the CIC**
 
 ## MRI acquisitions:
 * Proton-density weighted acquisition (~10 min)
 * Acquisition preceded by MT-pulse (~10 min)
-* B1 field mapping via EPI with 60 degree flip angle (~2 min)
-* B1 field mapping via EPI with 120 degree flip angle (~2 min)
+* B1 field mapping with the double angle method (DAM): 2 EPI acquisitions, one with a 60 degree flip angle (~2 min) and one with a 120 degree flip angle (~2 min)
 
 The total acquisition time is ~30 minutes. Mice can be anesthetized according to standard protocol. Acquisitions can be performed using the room-temperature coil or CryoProbe - if using the CryoProbe, there will be signal drop-off in the ventral regions of the brain so the two EPI acquisitions are absolutely necessary in order to partially correct for this. If the room-temperature coil is used, there are minor variations in field strength (10% change in MTR) so the EPI acquisitions are still recommended.
 
-The necessary sequences for the above acquisitions are all developed and present on the animal facility scanner (sequence names will be added soon). To perform the B1 field mapping using a 120 degree flip angle, simply use the same sequence as for the 60 degrees and adjust the flip angle by manually setting the attenuation.
+The necessary sequences for the above acquisitions are all developed and present on the CIC animal scanner (PV5). To perform the B1 field mapping using a 120 degree flip angle, simply use the same sequence as for the 60 degrees and adjust the flip angle by manually setting the attenuation.
 
 # **Image Processing**
 
 The mtr_processing_main.sh script performs all necessary preprocessing and mtr-related processing on raw minc inputs. 
 
-## Path to script:
+## Path to script on CIC:
 _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_main.sh_
 
 ## Overview of script function:
@@ -37,6 +34,12 @@ _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_m
 ![MTR_pipeline_workflow](https://user-images.githubusercontent.com/47565996/88414447-3decf180-cdb3-11ea-90aa-c6bd84fa32a6.png)
 
 ## To run the script from a CIC computer:
+
+1. Create the necessary environment using the provided .yml file. This will provide all the necessary python packages.
+
+*conda env create -f mtr_processing_env.yml*
+
+2. Run the script (the environment is activated within the script).
 
 _mtr_processing_main.sh output_folder coil_subjectid_mt_timepoint.mnc coil_subjectid_pd_timepoint.mnc coil_subjectid_b1_60_timepoint.mnc coil_subjectid_b1_120_timepoint.mnc_
 
