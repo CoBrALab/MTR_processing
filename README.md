@@ -48,7 +48,7 @@ _mtr_processing_main.sh output_folder coil_subjectid_mt_timepoint.mnc coil_subje
 * for the output files to have proper names, the input mincs must follow the naming convention coil_subjectid where coil is replaced either by ‘cry’ or ‘nrm’ to indicate either cryocoil or room-temperature coil, and subjectid is a 3-digit mouse ID. Finally, additional numbers at the end can be added to indicate timepoint. For example: cry_001_mt_1.mnc
 
 # **Output folders**
-![tree_output_updated](https://user-images.githubusercontent.com/47565996/72276795-c0c01300-35fe-11ea-85dd-ea3493ae2060.png)
+![image](https://user-images.githubusercontent.com/47565996/116476904-e439bc00-a849-11eb-966d-a4ccc48aefe8.png)
 
 * ‘preprocessed’ folder: orientation-corrected outputs for all inputs (mt, pd, b1_60 and b1_120)
 * ‘denoised’ folder: N4-bias field corrected outputs for all inputs. These outputs are used for subsequent registrations but not for analysis/ mtr map creation.
