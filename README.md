@@ -48,17 +48,18 @@ _mtr_processing_main.sh output_folder coil_subjectid_mt_timepoint.mnc coil_subje
 * for the output files to have proper names, the input mincs must follow the naming convention coil_subjectid where coil is replaced either by ‘cry’ or ‘nrm’ to indicate either cryocoil or room-temperature coil, and subjectid is a 3-digit mouse ID. Finally, additional numbers at the end can be added to indicate timepoint. For example: cry_001_mt_1.mnc
 
 # **Output folders**
-![image](https://user-images.githubusercontent.com/47565996/116476904-e439bc00-a849-11eb-966d-a4ccc48aefe8.png)
+![image](https://user-images.githubusercontent.com/47565996/116478032-7d1d0700-a84b-11eb-90f5-6c6689ee34f6.png)
 
 * ‘preprocessed’ folder: orientation-corrected outputs for all inputs (mt, pd, b1_60 and b1_120)
 * ‘denoised’ folder: N4-bias field corrected outputs for all inputs. These outputs are used for subsequent registrations but not for analysis/ mtr map creation.
-* ‘masks’ folder: contains one whole-brain mask for each coil_subjectid. Created from the preprocessed pd image. Also contains a mask without csf regions, as well as tissue labels (WM/GM/CSF) registered to each coil_subjectid.
+* ‘transforms_subject_to_DSURQE’ folder: contains the nonlinear and affine .xfm files to go from subject space to the DSURQE atlas space.
+* ‘masks’ folder: contains one whole-brain mask for each coil_subjectid. Created from the preprocessed pd image. 
+* ‘subject-specific tissue masks‘ folder: contains a gray matter (gm), white matter (wm) and corpus callosum (cc) registered to each subject.
 * ‘B1_maps’ folder: contains one b1 map per coil_subjectid. 
 The ‘registered_b1_to_mtr’ subfolder contains affine and non-linear transforms from the b1 map to the mtr map, as well as the final b1 map that is registered to the mtr map. This registration will account for the difference in resolution between the b1 and mtr maps. 
 The ‘normalized_and_registered_b1’ subfolder contains the b1 maps from the ‘registered_b1_to_mtr’ subfolder, except they are normalized by dividing by 60 degrees.
 * ‘mtr_maps’ folder: contains one mtr maps per coil_subjectid.
 The ‘corrected_mtr_maps’ subfolder contains the mtr maps from the ‘mtr_maps’ folder, except they are corrected according to the b1 field using a linear calibration that depends on the coil type. 
-* ‘mtr_histograms’ folder: contains one .txt file per coil_subjectid. This file can be used to create a histogram of the MTR distribution in each corrected MTR map. The column ‘bin centres’ corresponds to the MTR value and the column ‘counts’ indicates the number of voxels in the MTR map with a value that falls in the bin centered at that MTR value. 
 
 
 # **Preview of the outputs**
