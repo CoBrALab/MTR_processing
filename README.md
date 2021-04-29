@@ -76,5 +76,9 @@ Voxels with a higher MTR value have a higher concentration of myelin than voxels
 
 The reason why more myelin means a higher MTR is because when the MT-pulse is applied, protons in the myelin will become saturated and will have a smaller signal during a subsequent pulse; thus the MT-pulse suppresses the signal in myelinated regions. Since the MTR is calculated by subtracting the MT-pulse acquisition from the proton-density weighted acquisition, myelinated regions will have a higher MTR value.
 
-
+# **References**
+* Two-level DBM - https://github.com/CoBrALab/twolevel_ants_dbm
+* ANTs - https://github.com/ANTsX/ANTs
+* RABIES - https://github.com/CoBrALab/RABIES
+* MINC - https://github.com/CoBrALab/minc-toolkit-extras
 ***
