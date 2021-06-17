@@ -31,7 +31,7 @@ _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_m
 * Corrects the MTR map for the inhomogeneities in signal strength using the B1 field map to produce a final MTR map
 
 * _mt stands for MT-pulse acquisition, pd stands for proton-density acquisition, b1_60 is 60 degree EPI, and b1_120 stands for the 120 degree EPI acquisition.
-![MTR_pipeline_workflow](https://user-images.githubusercontent.com/47565996/88414447-3decf180-cdb3-11ea-90aa-c6bd84fa32a6.png)
+![pipeline_worflow](https://user-images.githubusercontent.com/47565996/122479817-b5aea680-cf99-11eb-9c49-c074f27fc6f2.png)
 
 ## To run the script from a CIC computer:
 
