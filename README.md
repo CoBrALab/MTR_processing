@@ -1,7 +1,7 @@
 # **What is Magnetization Transfer Imaging (MTI)?**
 
 Magnetization Transfer (MT) is an MRI technique that allows for an estimation of myelin content. 
-The Magnetization Transfer Ratio (MTR) in particular is a semi-quantitative measure of myelin concentration, meaning that it indicates the relative myelin content but doesn’t have a direct biological interpretation. 
+The Magnetization Transfer Ratio (MTR) in particular is a semi-quantitative measure of myelin concentration, meaning that it is an estimate of relative myelin content. 
 
 Although there exist other MRI techniques for imaging myelin, MTR has previously shown a reasonable tradeoff between specificity to myelin and a straightforward implementation, requiring only a simple calculation of the ratio between two images, one with a MT saturation pulse and one without. 
 
@@ -21,7 +21,7 @@ The necessary sequences for the above acquisitions are all developed and present
 The mtr_processing_main.sh script performs all necessary preprocessing and mtr-related processing on raw minc inputs. 
 
 ## Path to script on CIC:
-_/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_main.sh_
+_/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_main.sh
 
 ## Overview of script function:
 
@@ -30,8 +30,8 @@ _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_m
 * Creates a B1 field map using the two EPI acquisitions (map of the pulse strength)
 * Corrects the MTR map for the inhomogeneities in signal strength using the B1 field map to produce a final MTR map
 
-* _mt stands for MT-pulse acquisition, pd stands for proton-density acquisition, b1_60 is 60 degree EPI, and b1_120 stands for the 120 degree EPI acquisition.
-![pipeline_worflow](https://user-images.githubusercontent.com/47565996/122480233-792f7a80-cf9a-11eb-9eba-1ae4a30ca2b8.png)
+* MT-w stands for MT-pulse acquisition, PD-w stands for proton-density acquisition, B1 (60) is 60 degree EPI, and B1 (120) stands for the 120 degree EPI acquisition. The black arrows indicate the images that were used as input for the creation of downstream images. The grat arrows indicate the files that were used that were used for registration.
+![pipeline_worflow](https://user-images.githubusercontent.com/47565996/122585037-091c0580-d029-11eb-924d-c31f4008d606.png)
 
 ## To run the script from a CIC computer:
 
@@ -72,7 +72,7 @@ Raw MT Acquisition &nbsp; &nbsp; &nbsp;  Preprocessed &nbsp; &nbsp; &nbsp; Denoi
 
 # **Interpreting the MTR map**
 
-Voxels with a higher MTR value have a higher concentration of myelin than voxels with a lower MTR value. Typical values for the MTR in the corpus callosum region are around 45-55%. 
+Voxels with a higher MTR value have a higher concentration of myelin than voxels with a lower MTR value. Typical values for the MTR in the corpus callosum region are around 45-55%. However, these values will be highly dependent on the pulse sequence that is used.
 
 The reason why more myelin means a higher MTR is because when the MT-pulse is applied, protons in the myelin will become saturated and will have a smaller signal during a subsequent pulse; thus the MT-pulse suppresses the signal in myelinated regions. Since the MTR is calculated by subtracting the MT-pulse acquisition from the proton-density weighted acquisition, myelinated regions will have a higher MTR value.
 
