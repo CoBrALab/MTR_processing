@@ -24,14 +24,13 @@ The mtr_processing_main.sh script performs all necessary preprocessing and mtr-r
 _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_main.sh_
 
 ## Overview of script function:
-
 * pre-processes and denoises the images, produces masks
 * creates the MTR map by taking the voxel-wise ratio of the proton density-weighted acquisition and the MT-pulse acquisition
 * Creates a B1 field map using the two EPI acquisitions (map of the pulse strength)
 * Corrects the MTR map for the inhomogeneities in signal strength using the B1 field map to produce a final MTR map
 
-* _mt stands for MT-pulse acquisition, pd stands for proton-density acquisition, b1_60 is 60 degree EPI, and b1_120 stands for the 120 degree EPI acquisition.
-![MTR_pipeline_workflow](https://user-images.githubusercontent.com/47565996/88414447-3decf180-cdb3-11ea-90aa-c6bd84fa32a6.png)
+* MT-w stands for MT-pulse acquisition, PD-w stands for proton-density acquisition, B1 (60) is 60 degree EPI, and B1 (120) stands for the 120 degree EPI acquisition. The black arrows indicate the images that were used as input for the creation of downstream images. The grat arrows indicate the files that were used that were used for registration.
+![pipeline_worflow](https://user-images.githubusercontent.com/47565996/122585037-091c0580-d029-11eb-924d-c31f4008d606.png)
 
 ## To run the script from a CIC computer:
 
