@@ -1,4 +1,5 @@
 #!/bin/bash
+#this script is courtesy of Gabriel Desrosiers-Gregoire (https://github.com/CoBrALab/RABIES)
 
 set -euo pipefail
 set -x

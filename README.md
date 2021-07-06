@@ -24,7 +24,6 @@ The mtr_processing_main.sh script performs all necessary preprocessing and mtr-r
 _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_main.sh
 
 ## Overview of script function:
-
 * pre-processes and denoises the images, produces masks
 * creates the MTR map by taking the voxel-wise ratio of the proton density-weighted acquisition and the MT-pulse acquisition
 * Creates a B1 field map using the two EPI acquisitions (map of the pulse strength)

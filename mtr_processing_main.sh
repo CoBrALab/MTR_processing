@@ -20,7 +20,6 @@ cp $2 $tmp_subject_dir
 cp $3 $tmp_subject_dir
 cp $4 $tmp_subject_dir
 cp $5 $tmp_subject_dir
-cp /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/bias_cor_minc.py $tmp_subject_dir/bias_cor_minc.py #this is so the intermediate outputs from the b1 bias field correction get put in the tmp directory
 
 output=$1
 temp=$(basename $2)
@@ -43,7 +42,7 @@ for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_Magnetization
 /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $2)_processed.mnc $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
 
 #create mask by registering mt file to DSURQE, then transforming DSURQE mask to subject
-/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/antsRegistration_affine_SyN_rabies.sh $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc $atlas_for_reg $atlas_mask $output/transforms_subject_to_DSURQE/${basename}-DSURQE
+/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc $atlas_for_reg $atlas_mask $output/transforms_subject_to_DSURQE/${basename}-DSURQE
 antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_Magnetization_Transfer/tissue_labels/DSURQE_100micron_mask_fixed_binary_better.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/masks/${basename}_mask_nocsf.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
 antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_Magnetization_Transfer/tissue_labels/DSURQE_100micron_mask.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/masks/${basename}_mask_full.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
 
@@ -55,19 +54,10 @@ antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_Magnetization_Transf
 antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_Magnetization_Transfer/tissue_labels/DSURQE_100micron_wm_better.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_wm.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
 antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_Magnetization_Transfer/tissue_labels/cc_mask_100micron_better.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_cc.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
 
-#now do image denoising of both mt and pd acquisitions using non-local-means
-mkdir -m a=rwx $output/nonlocal_means_denoised
-DenoiseImage -d 3 -i $output/preprocessed/$(basename -s .mnc $2)_processed.mnc -n Rician -x $output/masks/${basename}_mask_full.mnc --verbose -o $output/nonlocal_means_denoised/$(basename -s .mnc $2)_denoised_ants.mnc
-DenoiseImage -d 3 -i $output/preprocessed/$(basename -s .mnc $3)_processed.mnc -n Rician -x $output/masks/${basename}_mask_full.mnc --verbose -o $output/nonlocal_means_denoised/$(basename -s .mnc $3)_denoised_ants.mnc
-
 #create MTR maps
 mkdir -m a=rwx $output/mtr_maps
 minccalc -expression '(A[0]- A[1])/A[0]' $output/preprocessed/$(basename -s .mnc $3)_processed.mnc $output/preprocessed/$(basename -s .mnc $2)_processed.mnc $output/mtr_maps/$(basename -s .mnc $2)_mtr_map_minccalc.mnc
 ImageMath 3 $output/mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath.mnc MTR $output/preprocessed/$(basename -s .mnc $3)_processed.mnc $output/preprocessed/$(basename -s .mnc $2)_processed.mnc $output/masks/${basename}_mask_nocsf.mnc
-
-#create denoised MTR maps too
-mkdir -m a=rwx $output/mtr_maps_denoised_ants
-ImageMath 3 $output/mtr_maps_denoised_ants/$(basename -s .mnc $2)_mtr_map_imagemath.mnc MTR $output/nonlocal_means_denoised/$(basename -s .mnc $3)_denoised_ants.mnc $output/nonlocal_means_denoised/$(basename -s .mnc $2)_denoised_ants.mnc $output/masks/${basename}_mask_nocsf.mnc
 
 #create b1 maps
 mkdir -m a=rwx $output/b1_maps
@@ -82,7 +72,7 @@ antsApplyTransforms -d 3 -i $output/b1_maps/${basename}_b1_map.mnc -t $output/b1
 mkdir -m a=rwx $output/b1_maps/normalized_and_registered_b1
 minccalc -expression "A[0]/60" $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc
 
-#perform the correction separately for the cryocoil(uses calib values for optimized param, but not for the extended range) and normal coil
+#perform the correction separately for the cryocoil (uses data from the optimized parameters) and normal coil (standard parameters)
 mkdir -m a=rwx $output/mtr_maps/corrected_mtr_maps
 if [ "$coil_type" == "cry" ]; then minccalc -expression 'A[0]/(1.1842766*A[1]-0.1842766)' $output/mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected.mnc; fi
 if [ "$coil_type" == "nrm" ]; then minccalc -expression 'A[0]/(1.25844938*A[1]-0.25844938)' $output/mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected.mnc; fi
@@ -94,27 +84,5 @@ if [ "$coil_type" == "nrm" ]; then minccalc -expression 'A[0]/(1.25844938*A[1]-0
 #after the correction, there may be a few voxels greater than 1 that correspond to noise but made it inside the mask. Set these to zero. (set values between [1,10] to 0)
 ImageMath 3 $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected_thresholded.mnc ReplaceVoxelValue $output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected.mnc 1 10 0
 ImageMath 3 $output/mtr_maps_denoised_ants/corrected_mtr_maps_denoised_ants/$(basename -s .mnc $2)_mtr_map_imagemath_denoised_corrected_thresholded.mnc ReplaceVoxelValue $output/mtr_maps_denoised_ants/corrected_mtr_maps_denoised_ants/$(basename -s .mnc $2)_mtr_map_imagemath_denoised_corrected.mnc 1 10 0
-
-if [ ! -f $output/mtr_means_cc_for_correlation.csv ]; then
-        echo subject, mean, stddev >> $output/mtr_means_cc_for_correlation.csv
-fi
-
-file1=$output/mtr_maps/corrected_mtr_maps/$(basename -s .mnc $2)_mtr_map_imagemath_corrected_thresholded.mnc
-mask1=$output/subject_specific_tissue_masks/${basename}_mask_cc.mnc
-subject=${basename}
-mean=$(mincstats -mean -quiet -mask  $mask1 -mask_floor 1 $file1)
-stddev=$(mincstats -stddev -quiet -mask  $mask1 -mask_floor 1 $file1)
-echo $subject, $mean, $stddev >> $output/mtr_means_cc_for_correlation.csv
-
-if [ ! -f $output/mtr_means_cc_for_correlation_denoised.csv ]; then
-        echo subject, mean, stddev >> $output/mtr_means_cc_for_correlation_denoised.csv
-fi
-
-file1=$output/mtr_maps_denoised_ants/corrected_mtr_maps_denoised_ants/$(basename -s .mnc $2)_mtr_map_imagemath_denoised_corrected_thresholded.mnc
-mask1=$output/subject_specific_tissue_masks/${basename}_mask_cc.mnc
-subject=${basename}
-mean=$(mincstats -mean -quiet -mask  $mask1 -mask_floor 1 $file1)
-stddev=$(mincstats -stddev -quiet -mask  $mask1 -mask_floor 1 $file1)
-echo $subject, $mean, $stddev >> $output/mtr_means_cc_for_correlation_denoised.csv
 
 rm -rf $tmp_subject_dir

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#this script is courtesy of Gabriel Desrosiers-Gregoire (https://github.com/CoBrALab/RABIES)
 
 # This file generates steps of registration between two images and attempts to compensate
 # For ANTs' dependency on the resolution of the file
