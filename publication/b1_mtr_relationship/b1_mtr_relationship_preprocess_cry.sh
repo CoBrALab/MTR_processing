@@ -61,7 +61,7 @@ mkdir -m a=rwx $output/subject_specific_tissue_masks
 mkdir -m a=rwx $output/transforms_subject_to_DSURQE
 
 #N4 bias field correct all the MT-w images, and the PD-w image. This is to aid with registration, and will not be used during the computation of MTR maps.
-for file in $tmp_mt_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $file)_processed.mnc $output/denoised/$(basename -s .mnc $file)_processed_denoised.mnc; done
+for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $file)_processed.mnc $output/denoised/$(basename -s .mnc $file)_processed_denoised.mnc; done
 /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $pd)_processed.mnc $output/denoised/$(basename -s .mnc $pd)_processed_denoised.mnc
 
 #obtain whole-brain and nocsf masks in the mt1 space by registering to the DSURQE atlas, then inverting transform, then applying inverse transforms to the DSURQE mask
@@ -137,3 +137,4 @@ mincmath -clobber -mult $output/b1_maps/tmp/${basename}_b1_map_reg_norm_mask_cer
 mincmath -clobber -const2 0.8 1 -segment $output/b1_maps/normalized_and_registered_b1/masked_norm_reg_b1/${basename}_b1_map_reg_norm_mask.mnc $output/b1_maps/normalized_and_registered_b1/thresholded_mask_norm_reg_b1/${basename}_b1_map_reg_norm_mask_thresh_0.9_to_1.mnc
 
 rm -rf $tmp_subject_dir
+rm -rf $tmp_b1_subject_dir
