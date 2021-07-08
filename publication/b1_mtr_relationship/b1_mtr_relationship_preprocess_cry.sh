@@ -32,15 +32,15 @@ pd=$8
 b160=$9
 b1120=$10
 
-cp $mt1 $tmp_subject_dir
-cp $mt2 $tmp_subject_dir
-cp $mt3 $tmp_subject_dir
-cp $mt4 $tmp_subject_dir
-cp $mt5 $tmp_subject_dir
-cp $mt6 $tmp_subject_dir
-cp $pd $tmp_subject_dir
-cp $b160 $tmp_b1_subject_dir
-cp $b1120 $tmp_b1_subject_dir
+cp $mt1 $tmp_subject_dir/$mt1
+cp $mt2 $tmp_subject_dir/$mt2
+cp $mt3 $tmp_subject_dir/$mt3
+cp $mt4 $tmp_subject_dir/$mt4
+cp $mt5 $tmp_subject_dir/$mt5
+cp $mt6 $tmp_subject_dir/$mt6
+cp $pd $tmp_subject_dir/$pd
+cp $b160 $tmp_b1_subject_dir/$b160
+cp $b1120 $tmp_b1_subject_dir/$b1120
 
 temp=$(basename $mt1)
 basename=$(basename $(echo $temp | cut -c1-7)) #extracts the coil_subjectid (assumes that they are in the form xxx_xxx)
