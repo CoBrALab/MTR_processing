@@ -103,6 +103,7 @@ otsu_bias_cor(target=bias_cor_input, otsu_ref=bias_cor_input, out_name=cwd+'/cor
 otsu_bias_cor(target=bias_cor_input, otsu_ref=cwd+'/corrected_iter1.mnc', out_name=cwd+'/corrected_iter2.mnc', b_value=b_value, n_iter=200)
 
 command = 'bash %s %s %s %s %s' % (reg_script_path, cwd+'/corrected_iter2.mnc', anat, anat_mask, cwd+'/'+filename_split[0],)
+print(command)
 rc = os.system(command)
 
 command = 'antsApplyTransforms -d 3 -i %s -t [%s_output_0_GenericAffine.xfm,1] -r %s -o %s -n GenericLabel' % (anat_mask,cwd+'/'+filename_split[0], cwd+'/corrected_iter2.mnc',resampled_mask)

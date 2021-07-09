@@ -10,6 +10,7 @@
 
 module load minc-toolkit
 module load minc-toolkit-extras
+module load ANTs
 source activate /home/cic/uromil/miniconda3/envs/mtr_processing_env
 
 tmp_b1_subject_dir=$(mktemp -d)
@@ -22,25 +23,26 @@ atlas_mask=${QUARANTINE_PATH}/resources/Dorr_2008_Steadman_2013_Ullmann_2013_Ric
 
 #move all of the images into a subject-specific temp directory
 output=$1
-mt1=$2
-mt2=$3
-mt3=$4
-mt4=$5
-mt5=$6
-mt6=$7
-pd=$8
-b160=$9
-b1120=$10
+shift
+mt1=$1
+mt2=$2
+mt3=$3
+mt4=$4
+mt5=$5
+mt6=$6
+pd=$7
+b160=$8
+b1120=$9
 
+cp $1 $tmp_subject_dir
 cp $2 $tmp_subject_dir
 cp $3 $tmp_subject_dir
 cp $4 $tmp_subject_dir
 cp $5 $tmp_subject_dir
 cp $6 $tmp_subject_dir
 cp $7 $tmp_subject_dir
-cp $8 $tmp_subject_dir
+cp $8 $tmp_b1_subject_dir
 cp $9 $tmp_b1_subject_dir
-cp $10 $tmp_b1_subject_dir
 
 temp=$(basename $mt1)
 basename=$(basename $(echo $temp | cut -c1-7)) #extracts the coil_subjectid (assumes that they are in the form xxx_xxx)
@@ -52,64 +54,63 @@ mkdir -m a=rwx $output/preprocessed
 mkdir -m a=rwx $output/denoised
 
 #fix the orientation
-for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
-for file in $tmp_b1_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
+#for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
+#for file in $tmp_b1_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
 
 ############################################################# Mask creation ################################################3
-mkdir -m a=rwx $output/masks
-mkdir -m a=rwx $output/subject_specific_tissue_masks
-mkdir -m a=rwx $output/transforms_subject_to_DSURQE
+#mkdir -m a=rwx $output/masks
+#mkdir -m a=rwx $output/subject_specific_tissue_masks
+#mkdir -m a=rwx $output/transforms_subject_to_DSURQE
 
 #N4 bias field correct all the MT-w images, and the PD-w image. This is to aid with registration, and will not be used during the computation of MTR maps.
-for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $file)_processed.mnc $output/denoised/$(basename -s .mnc $file)_processed_denoised.mnc; done
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $pd)_processed.mnc $output/denoised/$(basename -s .mnc $pd)_processed_denoised.mnc
+#for file in $tmp_subject_dir/*; do /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $file)_processed.mnc $output/denoised/$(basename -s .mnc $file)_processed_denoised.mnc; done
 
 #obtain whole-brain and nocsf masks in the mt1 space by registering to the DSURQE atlas, then inverting transform, then applying inverse transforms to the DSURQE mask
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN_rabies.sh $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $atlas_for_reg $atlas_mask $output/transforms_subject_to_DSURQE/${basename}-DSURQE
-antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_mask_fixed_binary.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/masks/${basename}_mask_nocsf.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
-antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_mask.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/masks/${basename}_mask_full.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $atlas_for_reg $atlas_mask $output/transforms_subject_to_DSURQE/${basename}-DSURQE
+#antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_mask_fixed_binary.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/masks/${basename}_mask_nocsf.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_mask.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/masks/${basename}_mask_full.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
 
 #warp the other masks (corpus callosum, wm, gm) to the subject file as well
-antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_gm.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_gm.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
-antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_wm.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_wm.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
-antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/cc_mask_100micron.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_cc.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_gm.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_gm.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_wm.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_wm.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/cc_mask_100micron.mnc -t $output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_1_inverse_NL.xfm -t [$output/transforms_subject_to_DSURQE/${basename}-DSURQE_output_0_GenericAffine.xfm,1] -n GenericLabel -o $output/subject_specific_tissue_masks/${basename}_mask_cc.mnc --verbose -r $output/denoised/$(basename -s .mnc $2)_processed_denoised.mnc
 
 #create eroded masks to be sure that you're not including any csf in your mtr map (may affect calibration). since the original nocsf masks yield small ventricles.
-mkdir -m a=rwx $output/masks_eroded
-mincmorph -erosion $output/masks/${basename}_mask_nocsf.mnc $output/masks_eroded/${basename}_mask_nocsf_eroded.mnc
+#mkdir -m a=rwx $output/masks_eroded
+#mincmorph -erosion $output/masks/${basename}_mask_nocsf.mnc $output/masks_eroded/${basename}_mask_nocsf_eroded.mnc
 
 ############################################################### Registration of all MT and PD acquisition within a single subject (register to MT1, which has largest FA) ####################################
 mkdir -m a=rwx $output/transforms_subject_acq_to_mt1
 
 #register all other mt-w images and pd-w image to the mt-w image with largest FA (mt1)
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt2)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt2-mt1
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt3)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt3-mt1
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt4)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt4-mt1
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt5)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt5-mt1
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt6)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt6-mt1
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $pd)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_pd-mt1
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt2)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt2-mt1
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt3)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt3-mt1
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt4)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt4-mt1
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt5)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt5-mt1
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $mt6)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_mt6-mt1
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $pd)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/transforms_subject_acq_to_mt1/${basename}_pd-mt1
 
 #Denoise the mt and pd acquisitions using non-local means denoising 
-mkdir -m a=rwx $output/nonlocal_means_denoised
-for file in $tmp_subject_dir/*; do DenoiseImage -d 3 -i $output/preprocessed/$(basename -s .mnc $file)_processed.mnc -n Rician -x $output/masks/${basename}_mask_full.mnc --verbose -o $output/nonlocal_means_denoised/$(basename -s .mnc $file)_denoised_ants.mnc; done
+#mkdir -m a=rwx $output/nonlocal_means_denoised
+#for file in $tmp_subject_dir/*; do DenoiseImage -d 3 -i $output/preprocessed/$(basename -s .mnc $file)_processed.mnc -n Rician -x $output/masks/${basename}_mask_full.mnc --verbose -o $output/nonlocal_means_denoised/$(basename -s .mnc $file)_denoised_ants.mnc; done
 
 #Create MTR maps in native space
-mkdir -m a=rwx $output/mtr_maps_denoised_ants_eroded_native_space
-for file in $tmp_subject_dir/*mt*; do ImageMath 3 $output/mtr_maps_denoised_ants_eroded/$(basename -s .mnc $file)_mtr_map_imagemath_denoised_eroded.mnc MTR $output/nonlocal_means_denoised/$(basename -s .mnc $pd)_denoised_ants.mnc $output/nonlocal_means_denoised/$(basename -s .mnc $file)_denoised_ants.mnc $output/masks_eroded/${basename}_mask_nocsf_eroded.mnc; done
+#mkdir -m a=rwx $output/mtr_maps_denoised_ants_eroded_native_space
+#for file in $tmp_subject_dir/*mt*; do ImageMath 3 $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $file)_mtr_map_imagemath_denoised_eroded.mnc MTR $output/nonlocal_means_denoised/$(basename -s .mnc $pd)_denoised_ants.mnc $output/nonlocal_means_denoised/$(basename -s .mnc $file)_denoised_ants.mnc $output/masks_eroded/${basename}_mask_nocsf_eroded.mnc; done
 
 #Apply transforms to the MTR maps to bring them all into mt1 space
 mkdir -m a=rwx $output/mtr_maps_denoised_ants_eroded_mt1_space
-antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt2)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt2-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt2-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt2)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
-antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt3)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt3-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt3-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt3)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
-antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt4)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt4-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt4-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt4)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
-antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt5)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt5-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt5-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt5)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
-antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt6)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt6-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt6-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt6)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
-cp $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt1)_mtr_map_imagemath_denoised_eroded.mnc $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt1)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc
+#antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt2)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt2-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt2-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt2)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt3)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt3-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt3-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt3)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt4)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt4-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt4-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt4)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt5)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt5-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt5-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt5)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt6)_mtr_map_imagemath_denoised_eroded.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_mt6-mt1_output_0_GenericAffine.xfm -t $output/transforms_subject_acq_to_mt1/${basename}_mt6-mt1_output_1_NL.xfm -o $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt6)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#cp $output/mtr_maps_denoised_ants_eroded_native_space/$(basename -s .mnc $mt1)_mtr_map_imagemath_denoised_eroded.mnc $output/mtr_maps_denoised_ants_eroded_mt1_space/$(basename -s .mnc $mt1)_mtr_map_imagemath_denoised_eroded_mt1_space.mnc
 
 ############################################################### Registration of B1 acquisitions to MT within subject (register to MT1, which has largest FA) ####################################
 
 #perform bias field correction of the b1_120 acquisition first (assumes that the mask registered to mt1 applies well to b1-120 as well)
-python $tmp_subject_dir/bias_cor_minc.py $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/denoised/$(basename -s .mnc $b1120)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc /data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/helper_scripts/antsRegistration_rigid.sh $output/denoised/$(basename -s .mnc $b1120)_processed_denoised.mnc
+python $tmp_subject_dir/bias_cor_minc.py $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_rigid.sh $output/denoised/$(basename -s .mnc $b1120)_processed_denoised.mnc
 
 #register the denoised b1 acquisition to mt1
 mkdir -m a=rwx $output/b1_maps
