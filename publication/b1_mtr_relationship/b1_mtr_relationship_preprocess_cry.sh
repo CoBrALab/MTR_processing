@@ -113,28 +113,28 @@ mkdir -m a=rwx $output/mtr_maps_denoised_ants_eroded_mt1_space
 python $tmp_subject_dir/bias_cor_minc.py $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_rigid.sh $output/denoised/$(basename -s .mnc $b1120)_processed_denoised.mnc
 
 #register the denoised b1 acquisition to mt1
-mkdir -m a=rwx $output/b1_maps
-mkdir -m a=rwx $output/b1_maps/registered_b1_to_mtr
-/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $b1120)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045
+#mkdir -m a=rwx $output/b1_maps
+#mkdir -m a=rwx $output/b1_maps/registered_b1_to_mtr
+#/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/scripts_from_github/preprocess/antsRegistration_affine_SyN.sh $output/denoised/$(basename -s .mnc $b1120)_processed_denoised.mnc $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks/${basename}_mask_full.mnc $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045
 
 #Create B1 maps
-minccalc -expression 'acos(A[1]/(2*A[0]))*(180/(4*atan(1)))' $output/preprocessed/$(basename -s .mnc $b160)_processed.mnc $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/b1_maps/${basename}_b1_map.mnc
+#minccalc -expression 'acos(A[1]/(2*A[0]))*(180/(4*atan(1)))' $output/preprocessed/$(basename -s .mnc $b160)_processed.mnc $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/b1_maps/${basename}_b1_map.mnc
 
 #Apply transforms to the B1 map
-antsApplyTransforms -d 3 -i $output/b1_maps/${basename}_b1_map.mnc -t $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045_output_0_GenericAffine.xfm -t $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045_output_1_NL.xfm -o $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
+#antsApplyTransforms -d 3 -i $output/b1_maps/${basename}_b1_map.mnc -t $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045_output_0_GenericAffine.xfm -t $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045_output_1_NL.xfm -o $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc --verbose -r $output/denoised/$(basename -s .mnc $mt1)_processed_denoised.mnc
 
 #normalize b1 map using a value of 60
-mkdir -m a=rwx $output/b1_maps/normalized_and_registered_b1/
-minccalc -expression "A[0]/60" $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc
+#mkdir -m a=rwx $output/b1_maps/normalized_and_registered_b1/
+#minccalc -expression "A[0]/60" $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc
 ######################################################################### Create mask based on B1 field strength ###############################################################
 
 #create a mask according to the b1 map (only exists where b1 map is between 0.8 and 1). Do this by first masking b1_map with no_csf eroded mask, cut off cerebellum (can be noisy) then threshold to 0.8-1.
 mkdir -m a=rwx $output/b1_maps/tmp/
 mkdir -m a=rwx $output/b1_maps/normalized_and_registered_b1/masked_norm_reg_b1/
 mkdir -m a=rwx $output/b1_maps/normalized_and_registered_b1/thresholded_mask_norm_reg_b1/
-mincmath -clobber -mult $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc $output/masks_eroded/${basename}_mask_nocsf_eroded.mnc $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc
-mincmath -clobber -mult $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc /data/chamal/projects/mila/2019_Magnetization_Transfer/tissue_labels/cerebellum_antimask_large.mnc $output/b1_maps/tmp/${basename}_b1_map_reg_norm_mask_cerebellum.mnc
-mincmath -clobber -mult $output/b1_maps/tmp/${basename}_b1_map_reg_norm_mask_cerebellum.mnc /data/chamal/projects/mila/2019_Magnetization_Transfer/tissue_labels/ghosting_antimask.mnc $output/b1_maps/normalized_and_registered_b1/masked_norm_reg_b1/${basename}_b1_map_reg_norm_mask.mnc
+#mincmath -clobber -mult $output/b1_maps/normalized_and_registered_b1/${basename}_b1_map_registered_norm.mnc $output/masks_eroded/${basename}_mask_nocsf_eroded.mnc $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc
+#mincmath -clobber -mult $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/cerebellum_antimask_large.mnc $output/b1_maps/tmp/${basename}_b1_map_reg_norm_mask_cerebellum.mnc
+mincmath -clobber -mult $output/b1_maps/tmp/${basename}_b1_map_reg_norm_mask_cerebellum.mnc /data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/ghosting_antimask.mnc $output/b1_maps/normalized_and_registered_b1/masked_norm_reg_b1/${basename}_b1_map_reg_norm_mask.mnc
 mincmath -clobber -const2 0.8 1 -segment $output/b1_maps/normalized_and_registered_b1/masked_norm_reg_b1/${basename}_b1_map_reg_norm_mask.mnc $output/b1_maps/normalized_and_registered_b1/thresholded_mask_norm_reg_b1/${basename}_b1_map_reg_norm_mask_thresh_0.9_to_1.mnc
 
 rm -rf $tmp_subject_dir
