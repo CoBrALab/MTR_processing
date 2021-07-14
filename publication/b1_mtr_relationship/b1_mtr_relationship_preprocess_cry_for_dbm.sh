@@ -3,7 +3,7 @@
 #TIP: create a csv with the subject ids and paths to each of the input files
 #all input folders should contain raw minc images named with the following convention coil_subjectid_mt_timepoint.mnc or coil_subjectid_pd_timepoint.mnc etc. Where timepoint is a single digit!
 #usage:
-#mtr_processing_main.sh output_folder PD_image b1_60 b1_120 MT_image1 MT_image2 MT_image3 MT_image4 MT_image5 MT_image6
+#mtr_processing_main.sh output_folder MT_image1 MT_image2 MT_image3 MT_image4 MT_image5 MT_image6 PD_image b1_60 b1_120
 # OUTPUT FOLDER SHOULD NOT HAVE A / AT THE END!
 #it assumes that all 4 images were collected consecutively with no change in mouse positioning. Works with multiple MT images per mouse-coil combo but needs to be modified if want to use multiple pd images or b1 maps
 #edited on july 7, 2021 to perform registration of all 6 acquisitions from a single subject to each other. This requires taking all 6 acquisitions as input. Do this after the MTR calculation. This will permit an accurate voxelwise linear regression.
@@ -37,25 +37,25 @@ scriptdir="${scriptdir%/*}/../../"
 #move all of the images into a subject-specific temp directory
 output=$1
 shift
-pd=$1
-b160=$2
-b1120=$3
-mt1=$4
-mt2=$5
-mt3=$6
-mt4=$7
-mt5=$8
-mt6=$9
+mt1=$1
+mt2=$2
+mt3=$3
+mt4=$4
+mt5=$5
+mt6=$6
+pd=$7
+b160=$8
+b1120=$9
 
 cp $1 $tmp_subject_dir
+cp $2 $tmp_subject_dir
+cp $3 $tmp_subject_dir
 cp $4 $tmp_subject_dir
 cp $5 $tmp_subject_dir
 cp $6 $tmp_subject_dir
 cp $7 $tmp_subject_dir
-cp $8 $tmp_subject_dir
-cp $9 $tmp_subject_dir
-cp $2 $tmp_b1_subject_dir
-cp $3 $tmp_b1_subject_dir
+cp $8 $tmp_b1_subject_dir
+cp $9 $tmp_b1_subject_dir
 
 temp=$(basename $mt1)
 basename=$(basename $(echo $temp | cut -c1-7)) #extracts the coil_subjectid (assumes that they are in the form xxx_xxx)
