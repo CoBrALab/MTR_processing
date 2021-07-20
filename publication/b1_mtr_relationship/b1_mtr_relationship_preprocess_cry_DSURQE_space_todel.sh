@@ -150,7 +150,7 @@ for file in $tmp_subject_dir/*mt*; do mincmath -mult $output/masks_native_space/
 ############################################################### Registration of B1 acquisitions to MT within subject (register to MT1, which has largest FA) ####################################
 
 #perform bias field correction of the b1_120 acquisition first (assumes that the mask registered to mt1 applies well to b1-120 as well)
-python $tmp_subject_dir/bias_cor_minc.py $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/n4_bias_corrected/$(basename -s .mnc $b1120)_processed_denoised.mnc $output/masks_native_space/${basename}_mask_full.mnc $scriptdir/helper/antsRegistration_rigid.sh $output/n4_bias_corrected/$(basename -s .mnc $b1120)_processed_denoised.mnc
+python $tmp_subject_dir/bias_cor_minc.py $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/n4_bias_corrected/$(basename -s .mnc $mt1)_processed_denoised.mnc $output/masks_native_space/${basename}_mask_full.mnc $scriptdir/helper/antsRegistration_rigid.sh $output/n4_bias_corrected/$(basename -s .mnc $b1120)_processed_denoised.mnc
 
 #register the denoised b1 acquisition to mt1
 mkdir -m a=rwx $output/b1_maps

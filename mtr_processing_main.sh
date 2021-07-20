@@ -93,7 +93,7 @@ minccalc -expression 'acos(A[1]/(2*A[0]))*(180/(4*atan(1)))' $output/preprocesse
 python $scriptdir/helper/bias_cor_minc.py $output/preprocessed/$(basename -s .mnc $b1120)_processed.mnc $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc $output/masks/${basename}_mask_full.mnc $scriptdir/helper/antsRegistration_rigid.sh $output/n4_bias_corrected/$(basename -s .mnc $b1120)_processed_n4corr.mnc
 
 #register the b1 map to the MTR map
-$scriptdir/helper/antsRegistration_affine_SyN_rabies.sh $output/n4_bias_corrected/$(basename -s .mnc $b1120)_processed_n4corr.mnc $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc $output/masks/${basename}_mask_full.mnc $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045
+$scriptdir/helper/antsRegistration_affine_SyN.sh $output/n4_bias_corrected/$(basename -s .mnc $b1120)_processed_n4corr.mnc $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc $output/masks/${basename}_mask_full.mnc $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045
 antsApplyTransforms -d 3 -i $output/b1_maps/${basename}_b1_map.mnc -t $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045_output_1_NL.xfm -t $output/b1_maps/registered_b1_to_mtr/${basename}_b1_120-${basename}_mt_1045_output_0_GenericAffine.xfm -o $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc --verbose -r $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc
 
 #normalize b1 map using a value of 60
