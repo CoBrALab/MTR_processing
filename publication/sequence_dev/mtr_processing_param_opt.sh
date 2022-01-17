@@ -64,10 +64,10 @@ mkdir -m a=rwx $output/mtr_maps
 
 ###################################################################Standard processing and mask creation ###########################################
 #first, preprocess all the images (fix orientation)
-#for file in $tmp_subject_dir/*; do $scriptdir/helper/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
+for file in $tmp_subject_dir/*; do $scriptdir/helper/mouse-preprocessing-orientation.sh $file $output/preprocessed/$(basename -s .mnc $file)_processed.mnc; done
 
 #perform N4 bias field correction. The N4 bias corrected acquisitions are necessary for registration to the atlas
-#$scriptdir/helper/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $mt)_processed.mnc $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc
+$scriptdir/helper/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $mt)_processed.mnc $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc
 if [ ! -f $output/n4_bias_corrected/*pd*${version}* ]; then
   $scriptdir/helper/mouse-preprocessing-denoise-only.sh $output/preprocessed/$(basename -s .mnc $pd)_processed.mnc $output/n4_bias_corrected/$(basename -s .mnc $pd)_processed_n4corr.mnc
 fi
@@ -86,13 +86,13 @@ fi
 
 ############################################################### Registration of all MT acquisitions within a single subject (register to the PD) ####################################
 #register mt-w images to the pd-w image for each version (this is because the mouse may have moved from scan to scan as the sessions were long. Still want MTR maps to be meaningful)
-#$scriptdir/helper/antsRegistration_affine_SyN.sh $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc $output/n4_bias_corrected/$(basename -s .mnc $pd)_processed_n4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc $output/transforms_subject_mt_to_pd/$(basename -s .mnc $mt)-pd
+$scriptdir/helper/antsRegistration_affine_SyN.sh $output/n4_bias_corrected/$(basename -s .mnc $mt)_processed_n4corr.mnc $output/n4_bias_corrected/$(basename -s .mnc $pd)_processed_n4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc $output/transforms_subject_mt_to_pd/$(basename -s .mnc $mt)-pd
 
 #Apply transforms to the processed mt images to bring them all into pd space
-#antsApplyTransforms -d 3 -i $output/preprocessed/$(basename -s .mnc $mt)_processed.mnc -t $output/transforms_subject_mt_to_pd/$(basename -s .mnc $mt)-pd_output_1_NL.xfm -t $output/transforms_subject_mt_to_pd/$(basename -s .mnc $mt)-pd_output_0_GenericAffine.xfm -o $output/preprocessed_pd_space/$(basename -s .mnc $mt)_processed_pd_space.mnc --verbose -r $output/n4_bias_corrected/$(basename -s .mnc $pd)_processed_n4corr.mnc
+antsApplyTransforms -d 3 -i $output/preprocessed/$(basename -s .mnc $mt)_processed.mnc -t $output/transforms_subject_mt_to_pd/$(basename -s .mnc $mt)-pd_output_1_NL.xfm -t $output/transforms_subject_mt_to_pd/$(basename -s .mnc $mt)-pd_output_0_GenericAffine.xfm -o $output/preprocessed_pd_space/$(basename -s .mnc $mt)_processed_pd_space.mnc --verbose -r $output/n4_bias_corrected/$(basename -s .mnc $pd)_processed_n4corr.mnc
 
 ############################################################MTR map creation using mt acquisitions in PD space #################################
-#ImageMath 3 $output/mtr_maps/$(basename -s .mnc $mt)_mtr_map_imagemath.mnc MTR $output/preprocessed/$(basename -s .mnc $pd)_processed.mnc $output/preprocessed_pd_space/$(basename -s .mnc $mt)_processed_pd_space.mnc $output/masks/${basename}_${version}_mask_nocsf.mnc
+ImageMath 3 $output/mtr_maps/$(basename -s .mnc $mt)_mtr_map_imagemath.mnc MTR $output/preprocessed/$(basename -s .mnc $pd)_processed.mnc $output/preprocessed_pd_space/$(basename -s .mnc $mt)_processed_pd_space.mnc $output/masks/${basename}_${version}_mask_nocsf.mnc
 
 
 ############################################################ Extract mean and std within masks for the purpose of calculating SNR ############################

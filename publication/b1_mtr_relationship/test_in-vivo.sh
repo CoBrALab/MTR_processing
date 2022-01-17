@@ -1,11 +1,3 @@
-#!/bin/bash
-#this script is for creating MTR and B1 maps for the purpose of performing a B1-MTR linear regression
-#all input folders should contain raw nifti images named with the following naming format: sub-HAR001_acq-cryo_flip-990_MTw.nii.gz
-#usage:
-#mtr_processing_main.sh output_folder PDw B1_60 B1_120 MT1 MT2 MT3 MT4 MT5 MT6 MT7 MT8 MT9
-#it assumes that all images were collected consecutively with no change in mouse positioning.
-#edited on jan 11, 2022 to use raw niftis instead of minc as input, remove reg of all mt acq to each other
-
 module load minc-toolkit
 module load minc-toolkit-extras
 module load ANTs
@@ -24,7 +16,6 @@ atlas_nocsf_mask=/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tiss
 atlas_gm_mask=/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_gm.mnc
 atlas_wm_mask=/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_wm.mnc
 atlas_cc_mask=/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/cc_mask_100micron.mnc
-cerebellum_antimask=/data/chamal/projects/mila/2019_MTR_on_Cryoprobe/resources_tissue_labels/DSURQE_100micron_cerebellum_antimask.mnc
 
 #get the path to the folder where the script is located. If code was downloaded from github, all other necessary helper scripts should be located in folders relative to this one.
 wdir="$PWD"; [ "$PWD" = "/" ] && wdir=""
@@ -65,20 +56,16 @@ mkdir -m a=rwx $output/mtr_maps/mtr_maps_raw
 
 #convert from nifti to minc
 for file in $tmp_nii_subject_dir/*; do 
-        nii2mnc -noscanrange $file $output/raw_minc/$(basename -s .nii.gz $file).mnc; 
+        #nii2mnc -noscanrange $file $output/raw_minc/$(basename -s .nii.gz $file).mnc; 
         cp $output/raw_minc/$(basename -s .nii.gz $file).mnc $tmp_mnc_subject_dir; 
 done
 for file in $tmp_nii_b1_subject_dir/*; do 
-        nii2mnc -noscanrange $file $output/raw_minc/$(basename -s .nii.gz $file).mnc; 
+        #nii2mnc -noscanrange $file $output/raw_minc/$(basename -s .nii.gz $file).mnc; 
         cp $output/raw_minc/$(basename -s .nii.gz $file).mnc $tmp_mnc_b1_subject_dir; 
 done
 
 ############################################################# Registration of MTw/PDw to DSURQE atlas + Mask Creation ################################################
-#N4 bias field correct all the MT-w images, and the PD-w image. This is to aid with registration, and will not be used during the computation of MTR maps.
-for file in $tmp_mnc_subject_dir/*; do
-        $scriptdir/helper/mouse-preprocessing-N4corr.sh $output/raw_minc/$(basename $file) \
-        $output/n4_bias_corrected/$(basename -s .mnc $file)_N4corr.mnc; 
-done
+
 
 #register a single N4 corrected MT-w to DSURQE atlas (bring mt to DSURQE space)
 $scriptdir/helper/antsRegistration_affine_SyN.sh $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc \
@@ -115,8 +102,8 @@ antsApplyTransforms -d 3 -i $atlas_cc_mask \
 mincmorph -erosion $output/masks_native_space/${basename}_mask_nocsf.mnc $output/masks_native_space/${basename}_mask_nocsf_eroded.mnc
 
 ############################################################### Creation of MTw, PDw that will be used to make MTR maps ####################################
-# register all other mt-w images and pd-w image to the mt-w image with largest FA (mt1) - this will account for any motion/changes in positioning between acq
-# rigid registration is used to minimize unnecessary alterations to voxel values
+#register all other mt-w images and pd-w image to the mt-w image with largest FA (mt1) - this will account for any motion/changes in positioning between acq
+#MAKE THIS PART OPTIONAL
 for file in $tmp_mnc_subject_dir/*MT*; do
         fa_file=$(echo $(basename $file) | grep -oP '(?<=flip-).*?(?=_MTw)' ) #extract flip angle ;
         if [ ${fa_file} -lt ${fa_mt1} ]; then
@@ -231,14 +218,19 @@ mkdir -m a=rwx $output/b1_maps/mask_from_b1_map
 mincmath -clobber -mult $output/b1_maps/registered_and_normalized_b1/${basename}_b1_map_registered_norm.mnc \
 $output/masks_native_space/${basename}_mask_nocsf_eroded.mnc $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc
 
-mincmath -clobber -mult $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc $cerebellum_antimask \
-$output/b1_maps/mask_from_b1_map/${basename}_b1_map_reg_norm_mask_cerebellum.mnc
-
-mincmath -clobber -const2 0.8 1 -segment $output/b1_maps/mask_from_b1_map/${basename}_b1_map_reg_norm_masked.mnc \
+mincmath -clobber -const2 0.8 1 -segment $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc \
 $output/b1_maps/mask_from_b1_map/${basename}_b1_map_reg_norm_mask_thresh_0.8_to_1.mnc
 
-rm -rf $output/b1_maps/tmp/
+#rm -rf $output/b1_maps/tmp/
 rm -rf $tmp_nii_subject_dir
 rm -rf $tmp_nii_b1_subject_dir
 rm -rf $tmp_mnc_subject_dir
 rm -rf $tmp_mnc_b1_subject_dir
+
+#echo 'everything in tmp_sub_dir'
+#for file in $tmp_mnc_subject_dir/*; do echo $file; done
+#echo 'everything in tmp_b1_dir'
+#for file in $tmp_mnc_b1_subject_dir/*; do echo $file; done
+
+#the command for the NL transform:
+#-t $output/transforms_subject_acq_to_mt1/${basename}_${fa_file}-to-${fa_mt1}_output_1_NL.xfm \
