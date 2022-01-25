@@ -17,12 +17,8 @@ case "$0" in
 esac
 scriptdir="${scriptdir%/*}/../../"
 
-mkdir -p ants_dbm
-cd ants_dbm
-
 $scriptdir/publication/group_comparison/twolevel_dbm.py --rigid-model-target $downsampled_atlas \
 --no-N4 --transform SyN --float --average-type normmean --gradient-step 0.25 --model-iterations 3 \
 --modelbuild-command antsMultivariateTemplateConstruction2.sh --cluster-type sge --skip-dbm \
 $num_levels $nifti_file_input_csv
 
-cd ..

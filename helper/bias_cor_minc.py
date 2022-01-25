@@ -119,4 +119,3 @@ low_dim = np.asarray(dim).min()
 sitk.WriteImage(sitk.ReadImage(tmppath+'/final_otsu.mnc'), biascor_EPI)
 
 sitk.WriteImage(sitk.ReadImage(biascor_EPI, rabies_data_type), biascor_EPI)
-sitk.WriteImage(sitk.ReadImage(resampled_mask, rabies_data_type), resampled_mask)
