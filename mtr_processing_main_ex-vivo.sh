@@ -124,11 +124,11 @@ python $scriptdir/helper/bias_cor_minc.py $output/raw_minc/$(basename -s .nii.gz
 #register the denoised b1 acquisition to mt
 $scriptdir/helper/antsRegistration_affine_SyN.sh $output/n4_bias_corrected/$(basename -s .nii.gz $b1120)_N4corr.mnc \
         $output/n4_bias_corrected/$(basename -s .nii.gz $mt)_N4corr.mnc $output/masks/${basename}_mask_full.mnc \
-        $output/registered_b1_to_mtr/${basename}_B1120-to-MT
+        $output/b1_maps/registered_b1_to_mtr/${basename}_B1120-to-MT
 
 #Apply transforms to the B1 map to put it in mt space
-antsApplyTransforms -d 3 -i $output/b1_maps/${basename}_b1_map.mnc -t $output/registered_b1_to_mtr/${basename}_B1120-to-MT_output_1_NL.xfm \
-        -t $output/registered_b1_to_mtr/${basename}_B1120-to-MT_output_0_GenericAffine.xfm -o $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc \
+antsApplyTransforms -d 3 -i $output/b1_maps/${basename}_b1_map.mnc -t $output/b1_maps/registered_b1_to_mtr/${basename}_B1120-to-MT_output_1_NL.xfm \
+        -t $output/b1_maps/registered_b1_to_mtr/${basename}_B1120-to-MT_output_0_GenericAffine.xfm -o $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc \
         --verbose -r $output/n4_bias_corrected/$(basename -s .nii.gz $mt)_N4corr.mnc
 
 #normalize b1 map using a value of 60
@@ -136,20 +136,21 @@ minccalc -expression "A[0]/60" $output/b1_maps/registered_b1_to_mtr/${basename}_
         $output/b1_maps/registered_and_normalized_b1/${basename}_b1_map_registered_norm.mnc
 
 ########################################################################### Perform the correction ###############################################
-#THE SLOPES NEED TO BE UPDATED FOR IN-VIVO
 mkdir -m a=rwx $output/mtr_maps/mtr_maps_denoised_corrected/
-mkdir -m a=rwx $output/mtr_maps/mtr_maps_denoised_corrected_thresholded/
 
-#perform the correction separately for the cryocoil (uses data from the optimized parameters) and normal coil (standard parameters)
-if [ "$coil_type" == "cryo" ]; then minccalc -expression 'A[0]/(1.1842766*A[1]-0.1842766)' \
-        $output/mtr_maps/mtr_maps_denoised/${basename}_mtr_map_denoised.mnc $output/b1_maps/registered_and_normalized_b1/${basename}_b1_map_registered_norm.mnc \
-        $output/mtr_maps/mtr_maps_denoised_corrected/${basename}_mtr_map_denoised_corrected.mnc; fi
-if [ "$coil_type" == "room" ]; then minccalc -expression 'A[0]/(1.25844938*A[1]-0.25844938)' \
+#perform the correction separately for the cryocoil. Currently don't have ex-vivo data for room-temperature coils.
+if [ "$coil_type" == "cryo" ]; then minccalc -expression 'A[0]/(0.39521599*A[1]+0.60478401)' \
         $output/mtr_maps/mtr_maps_denoised/${basename}_mtr_map_denoised.mnc $output/b1_maps/registered_and_normalized_b1/${basename}_b1_map_registered_norm.mnc \
         $output/mtr_maps/mtr_maps_denoised_corrected/${basename}_mtr_map_denoised_corrected.mnc; fi
 
-#after the correction, there may be a few voxels greater than 1 that correspond to noise but made it inside the mask. Set these to zero. (set values between [1,10] to 0)
-ImageMath 3 $output/mtr_maps/mtr_maps_denoised_corrected_thresholded/${basename}_mtr_map_denoised_corrected_thresholded.mnc ReplaceVoxelValue $output/mtr_maps/mtr_maps_denoised_corrected/${basename}_mtr_map_denoised_corrected.mnc 1 10 0
+###################################################################### Produce outputs to facilitate group comparison ################
+mkdir -m a=rwx $output/niftis_for_dbm/
+mkdir -m a=rwx $output/niftis_for_dbm/n4_bias_corrected_masked_mnc/
+mkdir -m a=rwx $output/niftis_for_dbm/n4_bias_corrected_masked_nii/
+mkdir -m a=rwx $output/niftis_for_dbm/mtr_maps_denoised_corrected_nii/
+
+mincmath -mult $output/n4_bias_corrected/$(basename -s .nii.gz $mt)_N4corr.mnc $output/masks/${basename}_mask_full.mnc \
+        $output/niftis_for_dbm/n4_bias_corrected_masked_mnc/$(basename -s .nii.gz $mt)_N4corr_masked.mnc
 
 rm -rf $tmp_nii_subject_dir
 
