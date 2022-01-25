@@ -28,6 +28,7 @@ basename=$(echo $temp | grep -oP '(?<=).*?(?=_MTw)' )
 ###################################################################### Convert DBM inputs to niftis ################
 #mkdir -m a=rwx $output/dbm_inputs/N4corr_to_register
 #mkdir -m a=rwx $output/dbm_inputs/mtr_maps_to_warp
+mkdir -m a=rwx $output/dbm_inputs/mtr_maps_to_warp_noncorr
 
 #mask the N4_corr images, then convert them to nifti - these will be inputs to dbm
 #mincmath -mult $derivatives_folder/n4_bias_corrected/$(basename -s .nii.gz $mt)_N4corr.mnc $derivatives_folder/masks/${basename}_mask_full.mnc \
@@ -38,7 +39,7 @@ basename=$(echo $temp | grep -oP '(?<=).*?(?=_MTw)' )
 #rm -rf $output/dbm_inputs/N4corr_to_register/*.mnc
 
 #convert the mtr maps that I want to transform to common space into nifti
-#mnc2nii $derivatives_folder/mtr_maps/mtr_maps_denoised_corrected/${basename}_mtr_map_denoised_corrected.mnc  $output/dbm_inputs/mtr_maps_to_warp/${basename}_mtr_map_denoised_corrected.nii
+mnc2nii $derivatives_folder/mtr_maps/mtr_maps_denoised/${basename}_mtr_map_denoised.mnc  $output/dbm_inputs/mtr_maps_to_warp_noncorr/${basename}_mtr_map_denoised.nii
 
 ########################################################## Store outputs in filelist #############################################
 #for file in $output/dbm_inputs/N4corr_to_register/*.nii; do
@@ -56,8 +57,12 @@ basename=$(echo $temp | grep -oP '(?<=).*?(?=_MTw)' )
 fi
 
 ################################################ Apply the transforms to commonspace on the MTR maps ################
-mkdir -m a=rwx $output/warped_mtr_maps/minc
-mkdir -m a=rwx $output/warped_mtr_maps/nifti
+#mkdir -m a=rwx $output/warped_mtr_maps/
+#mkdir -m a=rwx $output/warped_mtr_maps/minc
+#mkdir -m a=rwx $output/warped_mtr_maps/nifti
+mkdir -m a=rwx $output/warped_mtr_maps_noncorr
+mkdir -m a=rwx $output/warped_mtr_maps_noncorr/minc
+mkdir -m a=rwx $output/warped_mtr_maps_noncorr/nifti
 
 cd $output/ants_dbm/output/secondlevel/
 exact_affine_transform_name=*secondlevel_${basename}_MTw_N4corr_masked*GenericAffine.mat
@@ -65,12 +70,12 @@ exact_inverseNL_transform_name=*secondlevel_${basename}_MTw_N4corr_masked*Invers
 get_i=$(echo $exact_inverseNL_transform_name | grep -oP '(?<=masked).*?(?=Inverse)' )
 exact_NL_transform_name=secondlevel_$(basename -s .nii.gz $mt)_N4corr_masked${get_i}Warp.nii.gz
 
-antsApplyTransforms -d 3 -i $output/dbm_inputs/mtr_maps_to_warp/${basename}_mtr_map_denoised_corrected.nii \
+antsApplyTransforms -d 3 -i $output/dbm_inputs/mtr_maps_to_warp_noncorr/${basename}_mtr_map_denoised.nii \
         -t $output/ants_dbm/output/secondlevel/$exact_NL_transform_name \
         -t $output/ants_dbm/output/secondlevel/$exact_affine_transform_name \
         -r $downsampled_atlas \
-        --verbose -o $output/warped_mtr_maps/nifti/${basename}_mtr_map_denoised_corrected_WARPED.nii.gz
+        --verbose -o $output/warped_mtr_maps_noncorr/nifti/${basename}_mtr_map_denoised_WARPED.nii.gz
 
 #convert the warped MTR map to mnc
-nii2mnc$output/warped_mtr_maps/nifti/${basename}_mtr_map_denoised_corrected_WARPED.nii.gz $output/warped_mtr_maps/minc/${basename}_mtr_map_denoised_corrected_WARPED.mnc
+nii2mnc $output/warped_mtr_maps_noncorr/nifti/${basename}_mtr_map_denoised_WARPED.nii.gz $output/warped_mtr_maps_noncorr/minc/${basename}_mtr_map_denoised_WARPED.mnc
 
