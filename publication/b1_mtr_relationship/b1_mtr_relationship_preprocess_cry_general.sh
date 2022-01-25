@@ -3,8 +3,8 @@
 #all input folders should contain raw nifti images named with the following naming format: sub-HAR001_acq-cryo_flip-990_MTw.nii.gz
 #usage:
 #mtr_processing_main.sh output_folder PDw B1_60 B1_120 MT1 MT2 MT3 MT4 MT5 MT6 MT7 MT8 MT9
-#it assumes that all images were collected consecutively with no change in mouse positioning.
-#edited on jan 11, 2022 to use raw niftis instead of minc as input, remove reg of all mt acq to each other
+#it assumes that all images were collected consecutively with minor change in mouse positioning.
+#edited on jan 11, 2022 to use raw niftis instead of minc as input, improve workflow
 
 module load minc-toolkit
 module load minc-toolkit-extras
@@ -71,7 +71,7 @@ mkdir -m a=rwx $output/masks_native_space
 #N4 bias field correct all the MT-w images, and the PD-w image. This is to aid with registration, and will not be used during the computation of MTR maps.
 for file in $tmp_mnc_subject_dir/*; do
         $scriptdir/helper/mouse-preprocessing-N4corr.sh $output/raw_minc/$(basename $file) \
-        $output/n4_bias_corrected/$(basename -s .mnc $file)_N4corr.mnc; 
+                $output/n4_bias_corrected/$(basename -s .mnc $file)_N4corr.mnc; 
 done
 
 #register a single N4 corrected MT-w to DSURQE atlas (bring mt to DSURQE space)
@@ -125,14 +125,14 @@ for file in $tmp_mnc_subject_dir/*MT*; do
         if [ ${fa_file} -lt ${fa_mt1} ]; then
                 #find transforms
                 $scriptdir/helper/antsRegistration_rigid.sh $output/n4_bias_corrected/$(basename -s .mnc $file)_N4corr.mnc \
-                $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc \
-                $output/transforms_subject_acq_to_mt1/${basename}_${fa_file}-to-${fa_mt1};
+                        $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc \
+                        $output/transforms_subject_acq_to_mt1/${basename}_${fa_file}-to-${fa_mt1};
 
                 #apply transforms
                 antsApplyTransforms -d 3 -i $output/raw_minc/$(basename $file) \
-                -t $output/transforms_subject_acq_to_mt1/${basename}_${fa_file}-to-${fa_mt1}_output_0_GenericAffine.xfm \
-                -o $output/raw_minc_mt1_space/$(basename -s .mnc $file)_mt1_space.mnc --verbose \
-                -r $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc
+                        -t $output/transforms_subject_acq_to_mt1/${basename}_${fa_file}-to-${fa_mt1}_output_0_GenericAffine.xfm \
+                        -o $output/raw_minc_mt1_space/$(basename -s .mnc $file)_mt1_space.mnc --verbose \
+                        -r $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc
         fi
 done
 #copy the MT1 file into same folder
@@ -140,17 +140,17 @@ cp $output/raw_minc/$(basename -s .nii.gz $mt1).mnc $output/raw_minc_mt1_space/$
 
 #also register the pdw to mt1
 $scriptdir/helper/antsRegistration_rigid.sh $output/n4_bias_corrected/$(basename -s .nii.gz $pd)_N4corr.mnc \
-$output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc \
-$output/transforms_subject_acq_to_mt1/${basename}_pd-to-${fa_mt1}
+        $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc \
+        $output/transforms_subject_acq_to_mt1/${basename}_pd-to-${fa_mt1}
 
 antsApplyTransforms -d 3 -i $output/raw_minc/$(basename -s .nii.gz $pd).mnc -t $output/transforms_subject_acq_to_mt1/${basename}_pd-to-${fa_mt1}_output_0_GenericAffine.xfm \
--o $output/raw_minc_mt1_space/$(basename -s .nii.gz $pd)_mt1_space.mnc --verbose -r $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc
+        -o $output/raw_minc_mt1_space/$(basename -s .nii.gz $pd)_mt1_space.mnc --verbose -r $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc
 
 #Denoise the registered mt and pd acquisitions using non-local means denoising
 for file in $tmp_mnc_subject_dir/*; do 
         DenoiseImage -d 3 -i $output/raw_minc_mt1_space/$(basename -s .mnc $file)_mt1_space.mnc -n Rician \
-        -x $output/masks_native_space/${basename}_mask_full.mnc --verbose \
-        -o $output/denoised_nonlocal_means/$(basename -s .mnc $file)_mt1_space_denoised.mnc; 
+                -x $output/masks_native_space/${basename}_mask_full.mnc --verbose \
+                -o $output/denoised_nonlocal_means/$(basename -s .mnc $file)_mt1_space_denoised.mnc; 
 done
 
 ###############################################################Creation of MTR maps ########################################
@@ -167,28 +167,28 @@ mkdir -m a=rwx $output/mtr_maps/mtr_maps_denoised_normalized_masked
 for file in $tmp_mnc_subject_dir/*MT*; do 
         #Create MTR maps in native space
         ImageMath 3 $output/mtr_maps/mtr_maps_raw/$(basename -s .mnc $file)_mtr_map.mnc MTR $output/raw_minc_mt1_space/$(basename -s .nii.gz $pd)_mt1_space.mnc \
-        $output/raw_minc_mt1_space/$(basename -s .mnc $file)_mt1_space.mnc $output/masks_native_space/${basename}_mask_full.mnc; 
+                $output/raw_minc_mt1_space/$(basename -s .mnc $file)_mt1_space.mnc $output/masks_native_space/${basename}_mask_full.mnc; 
 
         ImageMath 3 $output/mtr_maps/mtr_maps_denoised/$(basename -s .mnc $file)_denoised_mtr_map.mnc MTR $output/denoised_nonlocal_means/$(basename -s .nii.gz $pd)_mt1_space_denoised.mnc \
-        $output/denoised_nonlocal_means/$(basename -s .mnc $file)_mt1_space_denoised.mnc $output/masks_native_space/${basename}_mask_full.mnc;
+                $output/denoised_nonlocal_means/$(basename -s .mnc $file)_mt1_space_denoised.mnc $output/masks_native_space/${basename}_mask_full.mnc;
 
         #normalize MTR maps (voxelwise division by mt1)
         mincmath -clobber -nan -div $output/mtr_maps/mtr_maps_raw/$(basename -s .mnc $file)_mtr_map.mnc \
-        $output/mtr_maps/mtr_maps_raw/$(basename -s .nii.gz $mt1)_mtr_map.mnc \
-        $output/mtr_maps/mtr_maps_raw_normalized/$(basename -s .mnc $file)_mtr_map_normalized.mnc; 
+                $output/mtr_maps/mtr_maps_raw/$(basename -s .nii.gz $mt1)_mtr_map.mnc \
+                $output/mtr_maps/mtr_maps_raw_normalized/$(basename -s .mnc $file)_mtr_map_normalized.mnc; 
 
         mincmath -clobber -nan -div $output/mtr_maps/mtr_maps_denoised/$(basename -s .mnc $file)_denoised_mtr_map.mnc \
-        $output/mtr_maps/mtr_maps_denoised/$(basename -s .nii.gz $mt1)_denoised_mtr_map.mnc \
-        $output/mtr_maps/mtr_maps_denoised_normalized/$(basename -s .mnc $file)_denoised_mtr_map_normalized.mnc; 
+                $output/mtr_maps/mtr_maps_denoised/$(basename -s .nii.gz $mt1)_denoised_mtr_map.mnc \
+                $output/mtr_maps/mtr_maps_denoised_normalized/$(basename -s .mnc $file)_denoised_mtr_map_normalized.mnc; 
         
         #apply eroded nocsf nocerebellum mask to normalized mtr maps in mt1 space
         mincmath -mult $output/masks_native_space/${basename}_mask_nocsf_nocerebellum_eroded.mnc \
-        $output/mtr_maps/mtr_maps_raw_normalized/$(basename -s .mnc $file)_mtr_map_normalized.mnc \
-        $output/mtr_maps/mtr_maps_raw_normalized_masked/$(basename -s .mnc $file)_mtr_map_normalized_masked.mnc;
+                $output/mtr_maps/mtr_maps_raw_normalized/$(basename -s .mnc $file)_mtr_map_normalized.mnc \
+                $output/mtr_maps/mtr_maps_raw_normalized_masked/$(basename -s .mnc $file)_mtr_map_normalized_masked.mnc;
         
         mincmath -mult $output/masks_native_space/${basename}_mask_nocsf_nocerebellum_eroded.mnc \
-        $output/mtr_maps/mtr_maps_denoised_normalized/$(basename -s .mnc $file)_denoised_mtr_map_normalized.mnc \
-        $output/mtr_maps/mtr_maps_denoised_normalized_masked/$(basename -s .mnc $file)_denoised_mtr_map_normalized_masked.mnc;
+                $output/mtr_maps/mtr_maps_denoised_normalized/$(basename -s .mnc $file)_denoised_mtr_map_normalized.mnc \
+                $output/mtr_maps/mtr_maps_denoised_normalized_masked/$(basename -s .mnc $file)_denoised_mtr_map_normalized_masked.mnc;
 done
 
 ############################################################### Registration of B1 acquisitions to MT within subject (register to MT1, which has largest FA) ####################################
@@ -198,22 +198,21 @@ mkdir -m a=rwx $output/b1_maps/registered_and_normalized_b1
 
 #perform bias field correction of the b1_120 acquisition first (assumes that the mask registered to mt1 applies well to b1-120 as well)
 python $scriptdir/helper/bias_cor_minc.py $output/raw_minc/$(basename -s .nii.gz $b1120).mnc $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc \
-$output/masks_native_space/${basename}_mask_full.mnc $scriptdir/helper/antsRegistration_rigid.sh $output/n4_bias_corrected/$(basename -s .nii.gz $b1120)_N4corr.mnc
-rm -rf $output/n4_bias_corrected/$(basename -s .nii.gz $b1120)_resampled_mask.mnc
+        $output/masks_native_space/${basename}_mask_full.mnc $scriptdir/helper/antsRegistration_rigid.sh $output/n4_bias_corrected/$(basename -s .nii.gz $b1120)_N4corr.mnc
 
 #register the denoised b1 acquisition to mt1
 $scriptdir/helper/antsRegistration_affine_SyN.sh $output/n4_bias_corrected/$(basename -s .nii.gz $b1120)_N4corr.mnc \
-$output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc \
-$output/transforms_subject_acq_to_mt1/${basename}_B1120-to-${fa_mt1}
+        $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc $output/masks_native_space/${basename}_mask_full.mnc \
+        $output/transforms_subject_acq_to_mt1/${basename}_B1120-to-${fa_mt1}
 
 #Create B1 maps
 minccalc -expression 'acos(A[1]/(2*A[0]))*(180/(4*atan(1)))' $output/raw_minc/$(basename -s .nii.gz $b160).mnc \
-$output/raw_minc/$(basename -s .nii.gz $b1120).mnc $output/b1_maps/${basename}_b1_map.mnc
+        $output/raw_minc/$(basename -s .nii.gz $b1120).mnc $output/b1_maps/${basename}_b1_map.mnc
 
 #Apply transforms to the B1 map to put it in mt1 space
 antsApplyTransforms -d 3 -i $output/b1_maps/${basename}_b1_map.mnc -t $output/transforms_subject_acq_to_mt1/${basename}_B1120-to-${fa_mt1}_output_1_NL.xfm \
--t $output/transforms_subject_acq_to_mt1/${basename}_B1120-to-${fa_mt1}_output_0_GenericAffine.xfm -o $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc \
---verbose -r $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc
+        -t $output/transforms_subject_acq_to_mt1/${basename}_B1120-to-${fa_mt1}_output_0_GenericAffine.xfm -o $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc \
+        --verbose -r $output/n4_bias_corrected/$(basename -s .nii.gz $mt1)_N4corr.mnc
 
 #normalize b1 map using a value of 60
 minccalc -expression "A[0]/60" $output/b1_maps/registered_b1_to_mtr/${basename}_b1_map_registered.mnc $output/b1_maps/registered_and_normalized_b1/${basename}_b1_map_registered_norm.mnc
@@ -224,13 +223,13 @@ mkdir -m a=rwx $output/b1_maps/mask_from_b1_map
 
 #create a mask according to the b1 map (only exists where b1 map is between 0.8 and 1). Do this by first masking b1_map with no_csf eroded mask, cut off cerebellum (can be noisy) then threshold to 0.8-1.
 mincmath -clobber -mult $output/b1_maps/registered_and_normalized_b1/${basename}_b1_map_registered_norm.mnc \
-$output/masks_native_space/${basename}_mask_nocsf_nocerebellum_eroded.mnc $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc
+        $output/masks_native_space/${basename}_mask_nocsf_nocerebellum_eroded.mnc $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc
 
 mincmath -clobber -const2 0.001 2 -segment $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc \
-$output/b1_maps/mask_from_b1_map/${basename}_b1_map_reg_norm_mask_thresh_0.001_to_1.mnc
+        $output/b1_maps/mask_from_b1_map/${basename}_b1_map_reg_norm_mask_thresh_0.001_to_1.mnc
 
 mincmath -clobber -const2 0.8 1 -segment $output/b1_maps/tmp/${basename}_b1_map_reg_norm_masked_tmp.mnc \
-$output/b1_maps/mask_from_b1_map/${basename}_b1_map_reg_norm_mask_thresh_0.8_to_1.mnc
+        $output/b1_maps/mask_from_b1_map/${basename}_b1_map_reg_norm_mask_thresh_0.8_to_1.mnc
 
 rm -rf $output/b1_maps/tmp/
 rm -rf $tmp_nii_subject_dir
