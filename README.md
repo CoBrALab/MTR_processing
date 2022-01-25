@@ -14,14 +14,13 @@ Although there exist other MRI techniques for imaging myelin, MTR has previously
 
 The total acquisition time is ~30 minutes. Mice can be anesthetized according to standard protocol. Acquisitions can be performed using the room-temperature coil or CryoProbe - if using the CryoProbe, there will be signal drop-off in the ventral regions of the brain so the two EPI acquisitions are absolutely necessary in order to partially correct for this. If the room-temperature coil is used, there are minor variations in field strength (10% change in MTR) so the EPI acquisitions are still recommended.
 
-The necessary sequences for the above acquisitions are all developed and present on the CIC animal scanner (PV5). To perform the B1 field mapping using a 120 degree flip angle, simply use the same sequence as for the 60 degrees and adjust the flip angle by manually setting the attenuation.
+The necessary sequences for the above acquisitions are all developed and present on the CIC animal scanner (PV5). To perform the B1 field mapping using a 120 degree flip angle, simply use the same sequence as for the 60 degrees and adjust the flip angle by manually setting the attenuation, then GOP.
+
+Important: Make sure that the 'RECO_map_mode' parameter is set to 'ABSOLUTE MAPPING' for all acquisitions. Also, make sure that the receiver gain is the same for the PDw and MTw acquisitions - first acquire the PDw, then either use GOP for the MTw or manually set the receiver gain to be the same as the one that was automatically determined for the PDw.
 
 # **Image Processing**
 
 The mtr_processing_main.sh script performs all necessary preprocessing and mtr-related processing on raw minc inputs. 
-
-## Path to script on CIC:
-_/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_main.sh
 
 ## Overview of script function:
 * pre-processes and denoises the images, produces masks
@@ -29,7 +28,7 @@ _/data/chamal/projects/mila/2019_Magnetization_Transfer/scripts/mtr_processing_m
 * Creates a B1 field map using the two EPI acquisitions (map of the pulse strength)
 * Corrects the MTR map for the inhomogeneities in signal strength using the B1 field map to produce a final MTR map
 
-* MT-w stands for MT-pulse acquisition, PD-w stands for proton-density acquisition, B1 (60) is 60 degree EPI, and B1 (120) stands for the 120 degree EPI acquisition. The black arrows indicate the images that were used as input for the creation of downstream images. The grat arrows indicate the files that were used that were used for registration.
+* MTw stands for MT-pulse acquisition, PDw stands for proton-density acquisition, B1 (60) is 60 degree EPI, and B1 (120) stands for the 120 degree EPI acquisition. The black arrows indicate the images that were used as input for the creation of downstream images. The grat arrows indicate the files that were used that were used for registration.
 ![pipeline_worflow](https://user-images.githubusercontent.com/47565996/122585037-091c0580-d029-11eb-924d-c31f4008d606.png)
 
 ## To run the script from a CIC computer:
@@ -47,18 +46,21 @@ _mtr_processing_main.sh output_folder coil_subjectid_mt_timepoint.mnc coil_subje
 * for the output files to have proper names, the input mincs must follow the naming convention coil_subjectid where coil is replaced either by ‘cry’ or ‘nrm’ to indicate either cryocoil or room-temperature coil, and subjectid is a 3-digit mouse ID. Finally, additional numbers at the end can be added to indicate timepoint. For example: cry_001_mt_1.mnc
 
 # **Output folders**
-![image](https://user-images.githubusercontent.com/47565996/116478032-7d1d0700-a84b-11eb-90f5-6c6689ee34f6.png)
+![tree](https://user-images.githubusercontent.com/47565996/151047082-8b76379e-2c36-40d0-ad4d-4b339c181838.png)
 
-* ‘preprocessed’ folder: orientation-corrected outputs for all inputs (mt, pd, b1_60 and b1_120)
-* ‘denoised’ folder: N4-bias field corrected outputs for all inputs. These outputs are used for subsequent registrations but not for analysis/ mtr map creation.
+* ‘raw_minc’ folder: raw minc files for all acquisitions (mt, pd, b1_60 and b1_120)
+* ‘n4_bias_corrected’ folder: N4-bias field corrected outputs for all inputs. These outputs are used for subsequent registrations but not for analysis/ mtr map creation.
 * ‘transforms_subject_to_DSURQE’ folder: contains the nonlinear and affine .xfm files to go from subject space to the DSURQE atlas space.
-* ‘masks’ folder: contains one whole-brain mask for each coil_subjectid. Created from the preprocessed pd image. 
+* ‘masks’ folder: contains one whole-brain mask for each coil_subjectid, as well as a mask with the CSF removed. Created from the preprocessed pd image. 
 * ‘subject-specific tissue masks‘ folder: contains a gray matter (gm), white matter (wm) and corpus callosum (cc) registered to each subject.
-* ‘B1_maps’ folder: contains one b1 map per coil_subjectid. 
+* ‘b1_maps’ folder: contains one b1 map per coil_subjectid. 
 The ‘registered_b1_to_mtr’ subfolder contains affine and non-linear transforms from the b1 map to the mtr map, as well as the final b1 map that is registered to the mtr map. This registration will account for the difference in resolution between the b1 and mtr maps. 
-The ‘normalized_and_registered_b1’ subfolder contains the b1 maps from the ‘registered_b1_to_mtr’ subfolder, except they are normalized by dividing by 60 degrees.
-* ‘mtr_maps’ folder: contains one mtr maps per coil_subjectid.
-The ‘corrected_mtr_maps’ subfolder contains the mtr maps from the ‘mtr_maps’ folder, except they are corrected according to the b1 field using a linear calibration that depends on the coil type. 
+The ‘registered_and_normalized_b1’ subfolder contains the b1 maps from the ‘registered_b1_to_mtr’ subfolder, except they are normalized by dividing by 60 degrees.
+* 'denoised_nonlocal_means' folder: contains the raw MTw and PDw acquisitions, except denoised to remove Rician noise.
+* ‘mtr_maps’ folder: contains one mtr map per coil_subjectid.
+The 'mtr_maps_raw' subfolder contains MTR maps made directly from the raw minc images.
+The 'mtr_maps_denoised' subfolder contains MTR maps constructed from the denoised_nonlocal_means MTw and PDw images.
+The ‘mtr_maps_denoised_corrected’ subfolder contains the mtr maps from the ‘mtr_maps_denoised’ folder, except they are corrected according to the b1 field using a linear calibration that depends on the coil type. 
 
 
 # **Preview of the outputs**
