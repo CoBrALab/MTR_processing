@@ -35,15 +35,29 @@ The mtr_processing_main.sh script performs all necessary preprocessing and mtr-r
 
 1. Create the necessary environment using the provided .yml file. This will provide all the necessary python packages.
 
-*conda env create -f mtr_processing_env.yml*
+`conda env create -f mtr_processing_env.yml`
 
 2. Run the script (the environment is activated within the script).
 
-_mtr_processing_main.sh output_folder coil_subjectid_mt_timepoint.mnc coil_subjectid_pd_timepoint.mnc coil_subjectid_b1_60_timepoint.mnc coil_subjectid_b1_120_timepoint.mnc_
+`mtr_processing_main.sh output_folder sub-001_acq-cryo_MTw.nii.gz sub-001_acq-cryo_PDw.nii.gz sub-001_acq-cryo_flip-60_B1dam.nii.gz sub-001_acq-cryo_flip-120_B1dam.nii.gz `
 
-* the output_folder name should not have a ‘/’ at the end. 
 * the script assumes that all 4 acquisitions were taken consecutively and with no changes in mouse positioning
-* for the output files to have proper names, the input mincs must follow the naming convention coil_subjectid where coil is replaced either by ‘cry’ or ‘nrm’ to indicate either cryocoil or room-temperature coil, and subjectid is a 3-digit mouse ID. Finally, additional numbers at the end can be added to indicate timepoint. For example: cry_001_mt_1.mnc
+* for the output files to have proper names, the input mincs must follow the naming convention sub-SUBNUM_acq-coil_type.nii.gz, SUBNUM is replaced by the subject ID, coil is replaced either by ‘cryo’ or ‘nrm’ to indicate either cryocoil or room-temperature coil, and type is MTw, PDw or B1dam. If the type if B1dam, you also need the flip argument, either flip-60 or flip-120 to indicate the flip angle used. This naming convention follows the BIDS format.
+
+3. a) If you want to run the script on multiple subjects at once - use the qbatch module. First, create a joblist.sh file where each line in the file contains a command for a single subject, as in step 2. 
+
+3. b) Load the qbatch module. Also load minc-toolkit, minc-toolkit-extras and ANTs modules, then activate the environment. Normally these steps are done within the script itself, but they won't work properly when you're using qbatch. 
+
+```
+module load qbatch
+module load minc-toolkit
+module load minc-toolkit-extras
+module load ANTs
+source activate mtr_processing_env
+```
+3. c) Now submit your joblist to qbatch. It will run all your commands in parallel. It is recommended to try on a single subject first (without qbatch) before running all of them.
+
+`qbatch joblist.sh`
 
 # **Output folders**
 ![tree](https://user-images.githubusercontent.com/47565996/151047082-8b76379e-2c36-40d0-ad4d-4b339c181838.png)
