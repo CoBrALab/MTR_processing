@@ -26,25 +26,25 @@ coil_type=$(echo $temp | grep -oP '(?<=acq-).*?(?=_)' ) #extract coil type
 basename=$(echo $temp | grep -oP '(?<=).*?(?=_MTw)' )
 
 ###################################################################### Convert DBM inputs to niftis ################
-#mkdir -m a=rwx $output/dbm_inputs/N4corr_to_register
-#mkdir -m a=rwx $output/dbm_inputs/mtr_maps_to_warp
+mkdir -m a=rwx $output/dbm_inputs/N4corr_to_register
+mkdir -m a=rwx $output/dbm_inputs/mtr_maps_to_warp
 mkdir -m a=rwx $output/dbm_inputs/mtr_maps_to_warp_noncorr
 
 #mask the N4_corr images, then convert them to nifti - these will be inputs to dbm
-#mincmath -mult $derivatives_folder/n4_bias_corrected/$(basename -s .nii.gz $mt)_N4corr.mnc $derivatives_folder/masks/${basename}_mask_full.mnc \
-#        $output/dbm_inputs/N4corr_to_register/$(basename -s .nii.gz $mt)_N4corr_masked.mnc
+mincmath -mult $derivatives_folder/n4_bias_corrected/$(basename -s .nii.gz $mt)_N4corr.mnc $derivatives_folder/masks/${basename}_mask_full.mnc \
+        $output/dbm_inputs/N4corr_to_register/$(basename -s .nii.gz $mt)_N4corr_masked.mnc
 
 #it looks like the voxel values are preserved. Trying with noscanrange gives weird filename errors
-#mnc2nii $output/dbm_inputs/N4corr_to_register/$(basename -s .nii.gz $mt)_N4corr_masked.mnc $output/dbm_inputs/N4corr_to_register/$(basename -s .nii.gz $mt)_N4corr_masked.nii
-#rm -rf $output/dbm_inputs/N4corr_to_register/*.mnc
+mnc2nii $output/dbm_inputs/N4corr_to_register/$(basename -s .nii.gz $mt)_N4corr_masked.mnc $output/dbm_inputs/N4corr_to_register/$(basename -s .nii.gz $mt)_N4corr_masked.nii
+rm -rf $output/dbm_inputs/N4corr_to_register/*.mnc
 
 #convert the mtr maps that I want to transform to common space into nifti
 mnc2nii $derivatives_folder/mtr_maps/mtr_maps_denoised/${basename}_mtr_map_denoised.mnc  $output/dbm_inputs/mtr_maps_to_warp_noncorr/${basename}_mtr_map_denoised.nii
 
 ########################################################## Store outputs in filelist #############################################
-#for file in $output/dbm_inputs/N4corr_to_register/*.nii; do
-#    echo $file; 
-#done > $output/dbm_inputs/N4corr_to_register/dbm_input_nifti_filelist.csv
+for file in $output/dbm_inputs/N4corr_to_register/*.nii; do
+    echo $file; 
+done > $output/dbm_inputs/N4corr_to_register/dbm_input_nifti_filelist.csv
 
 ######################################################### Run the dbm model building #######################
  if test -f "$output/ants_dbm/output/secondlevel/COMPLETE"; then 
@@ -57,9 +57,9 @@ mnc2nii $derivatives_folder/mtr_maps/mtr_maps_denoised/${basename}_mtr_map_denoi
 fi
 
 ################################################ Apply the transforms to commonspace on the MTR maps ################
-#mkdir -m a=rwx $output/warped_mtr_maps/
-#mkdir -m a=rwx $output/warped_mtr_maps/minc
-#mkdir -m a=rwx $output/warped_mtr_maps/nifti
+mkdir -m a=rwx $output/warped_mtr_maps/
+mkdir -m a=rwx $output/warped_mtr_maps/minc
+mkdir -m a=rwx $output/warped_mtr_maps/nifti
 mkdir -m a=rwx $output/warped_mtr_maps_noncorr
 mkdir -m a=rwx $output/warped_mtr_maps_noncorr/minc
 mkdir -m a=rwx $output/warped_mtr_maps_noncorr/nifti
