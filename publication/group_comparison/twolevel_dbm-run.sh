@@ -26,6 +26,7 @@ coil_type=$(echo $temp | grep -oP '(?<=acq-).*?(?=_)' ) #extract coil type
 basename=$(echo $temp | grep -oP '(?<=).*?(?=_MTw)' )
 
 ###################################################################### Convert DBM inputs to niftis ################
+mkdir -m a=rwx $output/dbm_inputs
 mkdir -m a=rwx $output/dbm_inputs/N4corr_to_register
 mkdir -m a=rwx $output/dbm_inputs/mtr_maps_to_warp
 mkdir -m a=rwx $output/dbm_inputs/mtr_maps_to_warp_noncorr
